@@ -3,15 +3,20 @@ from datetime import datetime
 
 import requests
 
-from .config import CSV_HEADERS
+from .config import CSV_HEADERS, ISBNDB_API_KEY
 
 
-def _get_json(url: str, tentativas: int = 3, timeout: int = 20) -> dict | None:
+def _get_json(
+    url: str,
+    tentativas: int = 3,
+    timeout: int = 20,
+    headers: dict | None = None,
+) -> dict | None:
     """GET com retry em timeouts e 429. Honra Retry-After quando presente."""
     espera = 2
     for tentativa in range(1, tentativas + 1):
         try:
-            r = requests.get(url, timeout=timeout)
+            r = requests.get(url, timeout=timeout, headers=headers or {})
             if r.status_code == 429:
                 pausa = int(r.headers.get("Retry-After", espera))
                 time.sleep(pausa)
@@ -101,17 +106,43 @@ def buscar_mercado_livre(isbn: str) -> dict | None:
     }
 
 
+def buscar_isbndb(isbn: str) -> dict | None:
+    """ISBNdb — cobertura ampla incluindo editoras brasileiras (chave gratuita)."""
+    if not ISBNDB_API_KEY:
+        return None
+    try:
+        data = _get_json(
+            f"https://api2.isbndb.com/book/{isbn}",
+            headers={"Authorization": ISBNDB_API_KEY},
+        )
+    except (requests.RequestException, ValueError):
+        return None
+    if not data:
+        return None
+    book = data.get("book")
+    if not book or not book.get("title"):
+        return None
+    return {
+        "titulo": book.get("title", ""),
+        "autores": ", ".join(book.get("authors") or []),
+        "editora": book.get("publisher", ""),
+        "ano": (book.get("date_published") or "")[:4],
+        "paginas": book.get("pages", ""),
+        "idioma": book.get("language", ""),
+        "assuntos": ", ".join((book.get("subjects") or [])[:5]),
+        "capa_url": book.get("image", ""),
+        "fonte": "isbndb",
+    }
+
+
 def buscar_metadados(isbn: str) -> dict:
-    """Open Library → Google Books → Mercado Livre como fallback."""
-    dados = buscar_open_library(isbn)
-    if not dados or not dados.get("titulo"):
-        dados_gb = buscar_google_books(isbn)
-        if dados_gb and dados_gb.get("titulo"):
-            dados = dados_gb
-        else:
-            dados_ml = buscar_mercado_livre(isbn)
-            if dados_ml:
-                dados = dados_ml
+    """Open Library → Google Books → Mercado Livre → ISBNdb como fallbacks."""
+    for buscar in [buscar_open_library, buscar_google_books, buscar_mercado_livre, buscar_isbndb]:
+        dados = buscar(isbn)
+        if dados and dados.get("titulo"):
+            break
+    else:
+        dados = None
     if not dados:
         dados = {k: "" for k in CSV_HEADERS}
         dados["fonte"] = "nao_encontrado"

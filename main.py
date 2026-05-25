@@ -3,19 +3,20 @@
 Cadastro de biblioteca via leitor de código de barras (modo assíncrono).
 
 Escaneamento e busca de metadados são desacoplados: o ISBN escaneado entra
-em uma fila e um worker em background consulta as APIs (Open Library +
-Google Books). Você pode escanear o acervo inteiro sem esperar a rede.
+em uma fila e um worker em background consulta as APIs (Open Library →
+Google Books → Mercado Livre → ISBNdb). Você pode escanear o acervo
+inteiro sem esperar a rede.
 
 Arquivos gerados:
-  - biblioteca.csv   : acervo (uma linha por livro, pronto pra planilha)
-  - biblioteca.jsonl : mesmo conteúdo em JSON Lines
-  - pendentes.txt    : ISBNs enfileirados ainda não processados
-                       (re-enfileirados automaticamente na próxima execução)
+  - data/biblioteca.csv   : acervo (uma linha por livro, pronto pra planilha)
+  - data/biblioteca.jsonl : mesmo conteúdo em JSON Lines
+  - tmp/pendentes.txt     : ISBNs enfileirados ainda não processados
+                            (re-enfileirados automaticamente na próxima execução)
 
 Comandos durante a sessão:
   sair         : encerra após drenar a fila
   fila         : mostra quantos ISBNs ainda estão pendentes
-  reprocessar  : re-tenta busca de metadados para ISBNs sem dados
+  reprocessar  : re-tenta busca de metadados para ISBNs sem dados (fila deve estar vazia)
   Ctrl+C       : interrompe; ISBNs pendentes ficam pra próxima execução
 """
 
@@ -64,7 +65,7 @@ def _reprocessar_nao_encontrados() -> None:
 def main() -> None:
     print("📚  Cadastro de biblioteca — modo assíncrono")
     print("    Escaneie sem parar. Os metadados vêm em background.")
-    print("    Comandos: 'sair', 'fila', Ctrl+C\n")
+    print("    Comandos: 'sair', 'fila', 'reprocessar', Ctrl+C\n")
 
     conhecidos = carregar_isbns_cadastrados()
     fila: queue.Queue = queue.Queue()
@@ -97,7 +98,10 @@ def main() -> None:
                 print(f"  → {fila.unfinished_tasks} ISBN(s) aguardando.\n")
                 continue
             if cmd == "reprocessar":
-                _reprocessar_nao_encontrados()
+                if fila.unfinished_tasks > 0:
+                    print(f"  ! Aguarde a fila esvaziar ({fila.unfinished_tasks} pendente(s)).\n")
+                else:
+                    _reprocessar_nao_encontrados()
                 continue
 
             isbn = normalizar_isbn(entrada)

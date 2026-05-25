@@ -6,3 +6,7 @@ CSV_HEADERS = [
     "isbn", "titulo", "autores", "editora", "ano",
     "paginas", "idioma", "assuntos", "capa_url", "fonte", "data_cadastro",
 ]
+
+# Chave gratuita em https://isbndb.com/isbn-database (plano Free: 500 req/mês)
+# Sem a chave, livros brasileiros dificilmente serão encontrados.
+ISBNDB_API_KEY = ""

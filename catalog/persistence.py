@@ -7,6 +7,10 @@ from .config import CSV_FILE, CSV_HEADERS, JSON_FILE, PENDING_FILE
 
 _io_lock = threading.Lock()
 
+# Garante que os diretórios de dados existam ao importar o módulo
+Path(CSV_FILE).parent.mkdir(parents=True, exist_ok=True)
+Path(PENDING_FILE).parent.mkdir(parents=True, exist_ok=True)
+
 
 def carregar_isbns_cadastrados() -> set[str]:
     if not Path(CSV_FILE).exists():
