@@ -7,7 +7,7 @@ processamento posterior).
 
 ## Requisitos
 
-- Python 3.10 ou superior
+- Python 3.12 ou superior
 - Biblioteca [`requests`](https://pypi.org/project/requests/)
 - Um leitor de código de barras USB (qualquer modelo que se comporte como
   teclado, que é a esmagadora maioria — ele "digita" o código e dispara Enter)
@@ -21,7 +21,7 @@ pip install requests
 ## Uso
 
 ```bash
-python main.py
+python scripts/main.py
 ```
 
 Aponte o leitor para o código de barras na contracapa do livro. O script vai:
@@ -42,20 +42,20 @@ Para encerrar: digite `sair` ou pressione `Ctrl+C`.
 ISBN > 9788535914849
   ⌕ buscando metadados de 9788535914849...
   ✓ Dom Casmurro — Machado de Assis  (openlibrary)
-  → salvo em biblioteca.csv  (total: 1)
+  → salvo em data/biblioteca.csv  (total: 1)
 
 ISBN > 9788532530803
   ⌕ buscando metadados de 9788532530803...
   ✓ Harry Potter e a Pedra Filosofal — J.K. Rowling  (googlebooks)
-  → salvo em biblioteca.csv  (total: 2)
+  → salvo em data/biblioteca.csv  (total: 2)
 ```
 
 ## Arquivos de saída
 
-Ambos são criados no diretório onde o script é executado e crescem em modo
-*append* — você pode interromper e retomar sem perder nada.
+Ambos são criados no diretório `data/` e crescem em modo *append* — você pode
+interromper e retomar sem perder nada.
 
-### `biblioteca.csv`
+### `data/biblioteca.csv`
 
 Pensado para visualização rápida em planilha. Colunas:
 
@@ -73,14 +73,14 @@ Pensado para visualização rápida em planilha. Colunas:
 | `fonte` | `openlibrary`, `googlebooks` ou `nao_encontrado` |
 | `data_cadastro` | Timestamp ISO 8601 da leitura |
 
-### `biblioteca.jsonl`
+### `data/biblioteca.jsonl`
 
 Um objeto JSON por linha, com os mesmos campos. Útil para processar com
 `pandas`, importar para um banco de dados, ou consumir em outros scripts.
 
 ```python
 import json
-with open("biblioteca.jsonl") as f:
+with open("data/biblioteca.jsonl") as f:
     livros = [json.loads(linha) for linha in f]
 ```
 
@@ -109,11 +109,15 @@ with open("biblioteca.jsonl") as f:
 ## Estrutura do projeto
 
 ```
-.
-├── biblioteca_isbn.py    # Script principal
-├── README.md             # Este arquivo
-├── biblioteca.csv        # (gerado) Acervo em planilha
-└── biblioteca.jsonl      # (gerado) Acervo em JSON Lines
+my-lib-catalog/
+├── src/
+│   └── catalog/          # Pacote principal
+├── scripts/
+│   └── main.py           # Ponto de entrada
+├── data/                 # Acervo (CSV + JSONL)
+├── tests/                # Testes
+├── docs/                 # Documentação
+└── notebooks/            # Jupyter notebooks
 ```
 
 ## Licença

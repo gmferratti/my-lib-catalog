@@ -3,19 +3,22 @@
 ## Quick start
 
 ```bash
-pip install -r requirements.txt   # only dep: requests>=2.31.0
-python main.py                     # run the CLI app
+pip install requests
+python scripts/main.py
 ```
 
 ## Repo overview
 
-Plain Python 3.10+ project (uses `str | None` syntax). Not pip-installable. Single entrypoint: `main.py`.
+Plain Python 3.12+ project. Uses `src/` layout.
 
 | Path | Purpose |
 |------|---------|
-| `catalog/` | App package: ISBN validation, API clients, persistence, worker |
-| `main.py` | CLI entrypoint (event loop, user input) |
-| `tests/` | Empty — no test framework configured yet |
+| `src/catalog/` | App package: ISBN validation, API clients, persistence, worker |
+| `scripts/main.py` | CLI entrypoint (event loop, user input) |
+| `tests/` | Test suite |
+| `data/` | Committed data files (CSV + JSONL, append mode) |
+| `docs/` | Documentation |
+| `notebooks/` | Jupyter notebooks / exploration |
 
 ## Architecture
 
@@ -27,15 +30,11 @@ Plain Python 3.10+ project (uses `str | None` syntax). Not pip-installable. Sing
 
 ## Config
 
-`catalog/config.py` — file paths, CSV headers, `ISBNDB_API_KEY` (set for ISBNdb; free at isbndb.com).
+`src/catalog/config.py` — file paths, CSV headers, `ISBNDB_API_KEY` (set for ISBNdb; free at isbndb.com).
 
 ## Data files
 
 `data/biblioteca.csv` and `data/biblioteca.jsonl` are **committed to git** (append mode). Outputs are always written to both formats simultaneously.
-
-## Outdated README
-
-`README.md` references `biblioteca_isbn.py` as the entrypoint — that file does not exist. The real entrypoint is `main.py`.
 
 ## Commands (runtime)
 
@@ -46,6 +45,6 @@ Plain Python 3.10+ project (uses `str | None` syntax). Not pip-installable. Sing
 | `reprocessar` | Retry failed lookups (only when queue empty) |
 | `sair` / `exit` / `quit` | Drain queue, save pending, exit |
 
-## No tooling configured
+## Tooling
 
-No linter, formatter, type checker, or test runner configured (though `.gitignore` has entries for `pytest`, `ruff`, `mypy` caches — suggests they may be added later).
+No linter, formatter, or type checker configured yet.
