@@ -1,3 +1,5 @@
+import os
+
 CSV_FILE = "data/biblioteca.csv"
 JSON_FILE = "data/biblioteca.jsonl"
 PENDING_FILE = "tmp/pendentes.txt"
@@ -9,4 +11,5 @@ CSV_HEADERS = [
 
 # Chave gratuita em https://isbndb.com/isbn-database (plano Free: 500 req/mês)
 # Sem a chave, livros brasileiros dificilmente serão encontrados.
-ISBNDB_API_KEY = ""
+# Configure via variável de ambiente: export ISBNDB_API_KEY="sua-chave"
+ISBNDB_API_KEY = os.environ.get("ISBNDB_API_KEY", "")

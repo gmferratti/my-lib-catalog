@@ -3,7 +3,7 @@ from datetime import datetime
 
 import requests
 
-from .config import CSV_HEADERS, ISBNDB_API_KEY
+from ..config import CSV_HEADERS, ISBNDB_API_KEY
 
 
 def _get_json(

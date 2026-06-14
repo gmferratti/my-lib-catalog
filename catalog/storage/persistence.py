@@ -3,7 +3,7 @@ import json
 import threading
 from pathlib import Path
 
-from .config import CSV_FILE, CSV_HEADERS, JSON_FILE, PENDING_FILE
+from ..config import CSV_FILE, CSV_HEADERS, JSON_FILE, PENDING_FILE
 
 _io_lock = threading.Lock()
 

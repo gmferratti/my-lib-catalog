@@ -1,0 +1,13 @@
+[project]
+name = "my-lib-catalog"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["requests>=2.31.0"]
+
+[project.optional-dependencies]
+ui = ["streamlit>=1.35.0"]
+dev = ["pytest>=8.0", "pytest-mock>=3.14"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"

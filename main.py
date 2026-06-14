@@ -23,16 +23,27 @@ Comandos durante a sessão:
 import queue
 import threading
 
-from catalog.api import buscar_metadados
-from catalog.isbn import normalizar_isbn
-from catalog.persistence import (
+from catalog.metadata import buscar_metadados, worker
+from catalog.scanning import normalizar_isbn
+from catalog.storage import (
     adicionar_pendente,
     carregar_isbns_cadastrados,
     carregar_pendentes,
     carregar_todos_registros,
     reescrever_registros,
 )
-from catalog.worker import worker
+
+
+def _on_result(registro: dict) -> None:
+    if "_erro" in registro:
+        print(f"\n  ✗ [{registro['isbn']}] erro inesperado: {registro['_erro']}  (fica pendente)",
+              flush=True)
+    elif registro.get("titulo"):
+        print(f"\n  ✓ [{registro['isbn']}] {registro['titulo']} — {registro['autores']}",
+              flush=True)
+    else:
+        print(f"\n  ⚠  [{registro['isbn']}] sem metadados — salvo só o ISBN",
+              flush=True)
 
 
 def _reprocessar_nao_encontrados() -> None:
@@ -83,7 +94,8 @@ def main() -> None:
     else:
         print()
 
-    w = threading.Thread(target=worker, args=(fila, parar_evento), daemon=True)
+    w = threading.Thread(target=worker, args=(fila, parar_evento),
+                         kwargs={"on_result": _on_result}, daemon=True)
     w.start()
 
     try:
