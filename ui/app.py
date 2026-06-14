@@ -5,6 +5,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
 
+from catalog.organizer import (
+    ConfigEstantes,
+    EstanteConfig,
+    PrateleiraConfig,
+    carregar_config,
+    organizar,
+    salvar_config,
+)
 from catalog.storage import carregar_todos_registros, reescrever_registros
 
 st.set_page_config(
@@ -14,12 +22,12 @@ st.set_page_config(
 )
 
 FONTE_CORES = {
-    "openlibrary":   "#2e7d32",
-    "googlebooks":   "#1565c0",
-    "mercadolivre":  "#f9a825",
-    "isbndb":        "#6a1b9a",
-    "nao_encontrado":"#b71c1c",
-    "manual":        "#37474f",
+    "openlibrary":    "#2e7d32",
+    "googlebooks":    "#1565c0",
+    "mercadolivre":   "#f9a825",
+    "isbndb":         "#6a1b9a",
+    "nao_encontrado": "#b71c1c",
+    "manual":         "#37474f",
 }
 
 FONTE_LABELS = {
@@ -31,11 +39,26 @@ FONTE_LABELS = {
     "manual":         "Manual",
 }
 
+ESTILOS = {
+    "autor":   "Por autor (A → Z)",
+    "assunto": "Por assunto / gênero",
+    "ano":     "Por ano (mais recente primeiro)",
+}
+
+
+# ── Cache helpers ─────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=60)
 def _carregar() -> list[dict]:
     return carregar_todos_registros()
 
+
+@st.cache_data(ttl=None)
+def _carregar_config() -> ConfigEstantes:
+    return carregar_config()
+
+
+# ── Utilitários de exibição ───────────────────────────────────────────────────
 
 def _badge(fonte: str) -> str:
     cor = FONTE_CORES.get(fonte, "#78909c")
@@ -46,8 +69,9 @@ def _badge(fonte: str) -> str:
     )
 
 
+# ── Acervo: edição ────────────────────────────────────────────────────────────
+
 def _salvar_edicao(isbn: str, campos: dict) -> None:
-    """Atualiza um registro no JSONL/CSV e invalida o cache."""
     registros = carregar_todos_registros()
     for r in registros:
         if r["isbn"] == isbn:
@@ -61,7 +85,6 @@ def _salvar_edicao(isbn: str, campos: dict) -> None:
 def _dialog_editar(registro: dict) -> None:
     isbn = registro["isbn"]
 
-    # ── Capa atual ───────────────────────────────────────────────────────
     capa_atual = registro.get("capa_url", "")
     if capa_atual:
         col_img, col_info = st.columns([1, 3])
@@ -77,17 +100,10 @@ def _dialog_editar(registro: dict) -> None:
 
     st.divider()
 
-    # ── Formulário ────────────────────────────────────────────────────────
     with st.form("form_edicao", border=False):
-        titulo = st.text_input(
-            "Título",
-            value=registro.get("titulo", ""),
-        )
-        autores = st.text_input(
-            "Autores",
-            value=registro.get("autores", ""),
-            help="Separe múltiplos autores por vírgula",
-        )
+        titulo = st.text_input("Título", value=registro.get("titulo", ""))
+        autores = st.text_input("Autores", value=registro.get("autores", ""),
+                                help="Separe múltiplos autores por vírgula")
 
         c1, c2, c3 = st.columns(3)
         with c1:
@@ -99,109 +115,73 @@ def _dialog_editar(registro: dict) -> None:
 
         c4, c5 = st.columns([1, 3])
         with c4:
-            idioma = st.text_input(
-                "Idioma",
-                value=registro.get("idioma", ""),
-                help="ISO 639-1 — pt, en, es …",
-            )
+            idioma = st.text_input("Idioma", value=registro.get("idioma", ""),
+                                   help="ISO 639-1 — pt, en, es …")
         with c5:
-            assuntos = st.text_input(
-                "Assuntos",
-                value=registro.get("assuntos", ""),
-                help="Separe por vírgula",
-            )
+            assuntos = st.text_input("Assuntos", value=registro.get("assuntos", ""),
+                                     help="Separe por vírgula")
 
         st.markdown("**URL da capa**")
-        capa_url = st.text_input(
-            "URL da capa",
-            value=capa_atual,
-            label_visibility="collapsed",
-            placeholder="https://...",
-        )
+        capa_url = st.text_input("URL da capa", value=capa_atual,
+                                 label_visibility="collapsed",
+                                 placeholder="https://...")
 
         st.markdown("**Fonte**")
         opcoes_fonte = list(FONTE_LABELS.keys())
         fonte_atual = registro.get("fonte", "manual")
         fonte_idx = opcoes_fonte.index(fonte_atual) if fonte_atual in opcoes_fonte else opcoes_fonte.index("manual")
-        fonte = st.selectbox(
-            "Fonte",
-            options=opcoes_fonte,
-            index=fonte_idx,
-            format_func=lambda k: FONTE_LABELS[k],
-            label_visibility="collapsed",
-            help="'Manual' indica que os dados foram inseridos ou corrigidos à mão",
-        )
+        fonte = st.selectbox("Fonte", options=opcoes_fonte, index=fonte_idx,
+                             format_func=lambda k: FONTE_LABELS[k],
+                             label_visibility="collapsed")
 
-        submitted = st.form_submit_button(
-            "💾 Salvar alterações",
-            type="primary",
-            use_container_width=True,
-        )
+        submitted = st.form_submit_button("💾 Salvar alterações", type="primary",
+                                          use_container_width=True)
 
     if submitted:
         _salvar_edicao(isbn, {
-            "titulo":   titulo.strip(),
-            "autores":  autores.strip(),
-            "editora":  editora.strip(),
-            "ano":      ano.strip(),
-            "paginas":  paginas.strip(),
-            "idioma":   idioma.strip(),
-            "assuntos": assuntos.strip(),
-            "capa_url": capa_url.strip(),
-            "fonte":    fonte,
+            "titulo": titulo.strip(), "autores": autores.strip(),
+            "editora": editora.strip(), "ano": ano.strip(),
+            "paginas": paginas.strip(), "idioma": idioma.strip(),
+            "assuntos": assuntos.strip(), "capa_url": capa_url.strip(),
+            "fonte": fonte,
         })
         st.toast("Registro atualizado!", icon="✅")
         st.rerun()
 
 
-def main():
-    st.title("📚 Minha Biblioteca")
+# ── Tab: Acervo ───────────────────────────────────────────────────────────────
 
+def _render_acervo() -> None:
     registros = _carregar()
 
-    # ── Sidebar ──────────────────────────────────────────────────────────
     with st.sidebar:
         st.header("Filtros")
-
         busca = st.text_input("Título ou autor", placeholder="ex: Tolkien")
-
         idiomas = sorted({r.get("idioma", "") for r in registros if r.get("idioma")})
         idioma_sel = st.selectbox("Idioma", ["Todos"] + idiomas)
-
         fontes_disp = sorted({r.get("fonte", "") for r in registros if r.get("fonte")})
         fonte_sel = st.selectbox("Fonte", ["Todas"] + fontes_disp)
-
         ocultar_sem_meta = st.checkbox("Ocultar sem metadados", value=False)
-
         st.divider()
         modo_edicao = st.toggle("✏️ Modo edição", value=False,
                                 help="Exibe botão de edição em cada card")
-
         st.divider()
         if st.button("🔄 Recarregar dados"):
             st.cache_data.clear()
             st.rerun()
 
-    # ── Filtragem ─────────────────────────────────────────────────────────
     filtrados = registros
-
     if ocultar_sem_meta:
         filtrados = [r for r in filtrados if r.get("fonte") != "nao_encontrado"]
-
     if busca:
         q = busca.lower()
-        filtrados = [
-            r for r in filtrados
-            if q in r.get("titulo", "").lower() or q in r.get("autores", "").lower()
-        ]
-
+        filtrados = [r for r in filtrados
+                     if q in r.get("titulo", "").lower() or q in r.get("autores", "").lower()]
     if idioma_sel != "Todos":
         filtrados = [r for r in filtrados if r.get("idioma") == idioma_sel]
-
     if fonte_sel != "Todas":
         filtrados = [r for r in filtrados if r.get("fonte") == fonte_sel]
 
-    # ── Métricas ──────────────────────────────────────────────────────────
     total = len(registros)
     com_capa = sum(1 for r in registros if r.get("capa_url"))
     sem_meta = sum(1 for r in registros if r.get("fonte") == "nao_encontrado")
@@ -216,7 +196,6 @@ def main():
 
     st.divider()
 
-    # ── Grid de cards ─────────────────────────────────────────────────────
     if not filtrados:
         st.info("Nenhum livro encontrado com os filtros aplicados.")
     else:
@@ -239,34 +218,240 @@ def main():
                             'border-radius:4px">📖</div>',
                             unsafe_allow_html=True,
                         )
-                    titulo = r.get("titulo") or r.get("isbn", "—")
-                    st.markdown(f"**{titulo}**")
+                    st.markdown(f"**{r.get('titulo') or r.get('isbn', '—')}**")
                     if r.get("autores"):
                         st.caption(r["autores"])
                     if r.get("ano"):
                         st.caption(f"📅 {r['ano']}")
                     st.markdown(_badge(r.get("fonte", "")), unsafe_allow_html=True)
-
                     if modo_edicao:
                         if st.button("✏️ Editar", key=f"edit_{r['isbn']}",
                                      use_container_width=True):
                             _dialog_editar(r)
 
-    # ── Tabela completa ───────────────────────────────────────────────────
     with st.expander("Ver tabela completa"):
         if filtrados:
             rows = [{k: str(v) if not isinstance(v, str) else v for k, v in r.items()}
                     for r in filtrados]
-            st.dataframe(
-                rows,
-                width="stretch",
-                column_order=[
-                    "isbn", "titulo", "autores", "editora", "ano",
-                    "paginas", "idioma", "assuntos", "fonte", "data_cadastro", "capa_url",
-                ],
-            )
+            st.dataframe(rows, width="stretch",
+                         column_order=["isbn", "titulo", "autores", "editora", "ano",
+                                       "paginas", "idioma", "assuntos", "fonte",
+                                       "data_cadastro", "capa_url"])
         else:
             st.write("Sem registros.")
+
+
+# ── Tab: Estantes ─────────────────────────────────────────────────────────────
+
+def _gerar_txt(
+    resultados: list,
+    sem_lugar: list[dict],
+    estilo: str,
+) -> str:
+    linhas = [f"Organização por: {ESTILOS[estilo]}", "=" * 60, ""]
+    for r in resultados:
+        ocupacao = len(r.livros)
+        linhas.append(f"🗄️  {r.estante} — {r.prateleira}  |  {r.label_sugerido}"
+                      f"  |  {ocupacao}/{r.capacidade} livros")
+        linhas.append("-" * 60)
+        for livro in r.livros:
+            titulo = livro.get("titulo") or "(sem título)"
+            autores = livro.get("autores") or "(sem autor)"
+            ano = livro.get("ano") or "—"
+            linhas.append(f"  {autores} — {titulo} ({ano})")
+        linhas.append("")
+    if sem_lugar:
+        linhas += [f"⚠️  {len(sem_lugar)} livros sem lugar:", "-" * 60]
+        for livro in sem_lugar:
+            titulo = livro.get("titulo") or livro.get("isbn", "—")
+            linhas.append(f"  {titulo}")
+    return "\n".join(linhas)
+
+
+def _render_estantes() -> None:
+    livros = _carregar()
+
+    # ── Configuração ──────────────────────────────────────────────────────
+    with st.expander("⚙️ Configurar estantes", expanded=not bool(_carregar_config().estantes)):
+        cfg_atual = _carregar_config()
+
+        with st.form("form_config_estantes"):
+            c1, c2, c3, c4 = st.columns(4)
+            with c1:
+                num_estantes = st.number_input(
+                    "Número de estantes", min_value=1, max_value=20,
+                    value=max(1, len(cfg_atual.estantes)),
+                    step=1,
+                )
+            with c2:
+                prat_por_estante = st.number_input(
+                    "Prateleiras por estante", min_value=1, max_value=30,
+                    value=max(1, len(cfg_atual.estantes[0].prateleiras)
+                              if cfg_atual.estantes else 4),
+                    step=1,
+                )
+            with c3:
+                largura_cm = st.number_input(
+                    "Largura de cada prateleira (cm)", min_value=10.0, max_value=300.0,
+                    value=float(cfg_atual.estantes[0].prateleiras[0].largura_cm
+                                if cfg_atual.estantes and cfg_atual.estantes[0].prateleiras
+                                else 80.0),
+                    step=5.0,
+                )
+            with c4:
+                espessura_cm = st.number_input(
+                    "Espessura média dos livros (cm)", min_value=0.5, max_value=10.0,
+                    value=float(cfg_atual.espessura_media_cm),
+                    step=0.5,
+                    help="Espessura média da lombada. Padrão: 2,5 cm.",
+                )
+
+            # Prévia da capacidade
+            cap_prat = max(1, int(largura_cm / espessura_cm))
+            cap_total = int(num_estantes) * int(prat_por_estante) * cap_prat
+            num_prat_total = int(num_estantes) * int(prat_por_estante)
+            st.caption(
+                f"Capacidade estimada: **{cap_prat} livros/prateleira** · "
+                f"**{num_prat_total} prateleiras** · "
+                f"**{cap_total} livros no total**"
+            )
+
+            salvar = st.form_submit_button("💾 Salvar configuração", type="primary")
+
+        if salvar:
+            letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            nova_cfg = ConfigEstantes(
+                espessura_media_cm=float(espessura_cm),
+                estantes=[
+                    EstanteConfig(
+                        nome=f"Estante {i + 1}",
+                        prateleiras=[
+                            PrateleiraConfig(
+                                nome=letras[j % 26] if j < 26 else f"{letras[(j // 26) - 1]}{letras[j % 26]}",
+                                largura_cm=float(largura_cm),
+                            )
+                            for j in range(int(prat_por_estante))
+                        ],
+                    )
+                    for i in range(int(num_estantes))
+                ],
+            )
+            salvar_config(nova_cfg)
+            st.cache_data.clear()
+            st.toast("Configuração salva!", icon="✅")
+            st.rerun()
+
+    cfg = _carregar_config()
+    if not cfg.estantes:
+        st.info("Configure as suas estantes acima para gerar uma sugestão de organização.")
+        return
+
+    # ── Gerar sugestão ────────────────────────────────────────────────────
+    st.divider()
+    col_estilo, col_btn = st.columns([3, 1])
+    with col_estilo:
+        estilo = st.selectbox(
+            "Estilo de organização",
+            options=list(ESTILOS.keys()),
+            format_func=lambda k: ESTILOS[k],
+            label_visibility="collapsed",
+        )
+    with col_btn:
+        gerar = st.button("🗂️ Gerar sugestão", type="primary", use_container_width=True)
+
+    if "organizer_resultado" not in st.session_state or gerar:
+        if livros:
+            res, sem_lugar = organizar(livros, cfg, estilo)
+            st.session_state["organizer_resultado"] = res
+            st.session_state["organizer_sem_lugar"] = sem_lugar
+            st.session_state["organizer_estilo"] = estilo
+        else:
+            st.warning("Nenhum livro no acervo para organizar.")
+            return
+
+    resultado: list = st.session_state.get("organizer_resultado", [])
+    sem_lugar: list = st.session_state.get("organizer_sem_lugar", [])
+    estilo_usado: str = st.session_state.get("organizer_estilo", estilo)
+
+    if not resultado:
+        return
+
+    # ── Métricas ──────────────────────────────────────────────────────────
+    total_livros = len(livros)
+    total_prat = len(resultado)
+    cap_total = sum(r.capacidade for r in resultado)
+    distribuidos = sum(len(r.livros) for r in resultado)
+    ocupacao_pct = round(distribuidos / cap_total * 100) if cap_total else 0
+
+    m1, m2, m3, m4, m5 = st.columns(5)
+    m1.metric("Livros no acervo", total_livros)
+    m2.metric("Prateleiras", total_prat)
+    m3.metric("Capacidade total", cap_total)
+    m4.metric("Distribuídos", distribuidos)
+    m5.metric("Ocupação", f"{ocupacao_pct}%")
+
+    if sem_lugar:
+        prat_extras = -(-len(sem_lugar) // (cap_total // total_prat)) if total_prat else "?"
+        st.warning(
+            f"⚠️ **{len(sem_lugar)} livros não cabem** nas prateleiras configuradas. "
+            f"Considere adicionar ~{prat_extras} prateleira(s) ou aumentar a largura."
+        )
+
+    st.divider()
+
+    # ── Download ──────────────────────────────────────────────────────────
+    txt = _gerar_txt(resultado, sem_lugar, estilo_usado)
+    st.download_button(
+        "📥 Baixar sugestão (.txt)",
+        data=txt.encode("utf-8"),
+        file_name=f"organizacao_{estilo_usado}.txt",
+        mime="text/plain",
+    )
+
+    # ── Resultado por estante → prateleira ────────────────────────────────
+    estante_atual = None
+    for r in resultado:
+        if r.estante != estante_atual:
+            estante_atual = r.estante
+            st.subheader(f"🗄️ {r.estante}")
+
+        ocupacao = len(r.livros)
+        pct = ocupacao / r.capacidade if r.capacidade else 0
+        header = (
+            f"**{r.prateleira}** &nbsp;·&nbsp; "
+            f"*{r.label_sugerido}* &nbsp;·&nbsp; "
+            f"{ocupacao}/{r.capacidade} livros"
+        )
+        with st.expander(header, expanded=False):
+            st.progress(pct)
+            if not r.livros:
+                st.caption("(vazia)")
+            else:
+                for livro in r.livros:
+                    titulo = livro.get("titulo") or "(sem título)"
+                    autores = livro.get("autores") or "(sem autor)"
+                    ano = f" ({livro['ano']})" if livro.get("ano") else ""
+                    st.markdown(f"- {autores} — **{titulo}**{ano}")
+
+    if sem_lugar:
+        st.subheader("📦 Livros sem lugar")
+        for livro in sem_lugar:
+            titulo = livro.get("titulo") or livro.get("isbn", "—")
+            autores = livro.get("autores", "")
+            st.markdown(f"- {autores} — **{titulo}**" if autores else f"- **{titulo}**")
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+def main() -> None:
+    st.title("📚 Minha Biblioteca")
+    tab_acervo, tab_estantes = st.tabs(["📚 Acervo", "🗂️ Estantes"])
+
+    with tab_acervo:
+        _render_acervo()
+
+    with tab_estantes:
+        _render_estantes()
 
 
 if __name__ == "__main__":

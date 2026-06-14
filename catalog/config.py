@@ -1,6 +1,7 @@
 import os
 
 CSV_FILE = "data/biblioteca.csv"
+ESTANTES_FILE = "data/estantes.json"
 JSON_FILE = "data/biblioteca.jsonl"
 PENDING_FILE = "tmp/pendentes.txt"
 
