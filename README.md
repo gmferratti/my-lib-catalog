@@ -3,12 +3,13 @@
 Catalogador pessoal de biblioteca via leitor de código de barras USB.
 Escaneie ISBNs sem parar — os metadados chegam em background enquanto você
 continua lendo. O acervo é salvo em CSV (para planilha) e JSON Lines (para
-processamento). Uma UI Streamlit permite navegar e consultar a coleção.
+processamento). Uma UI Streamlit permite navegar, consultar e organizar a coleção.
 
 ## Requisitos
 
 - Python 3.12 ou superior
-- Um leitor de código de barras USB (qualquer modelo que funcione como teclado)
+- Um leitor de código de barras USB (qualquer modelo que funcione como teclado,
+  que é a esmagadora maioria — ele "digita" o código e dispara Enter)
 
 ## Instalação
 
@@ -41,7 +42,7 @@ make test       # roda a suite de testes
 ## Scanner (CLI)
 
 ```bash
-python main.py
+python scripts/main.py
 ```
 
 Aponte o leitor para o código de barras na contracapa. O script:
@@ -90,10 +91,8 @@ streamlit run ui/app.py
 
 Abra em um segundo terminal enquanto o scanner roda. A UI:
 
-- Exibe cards com capa, título, autores e ano
-- Filtra por título/autor, idioma e fonte
-- Mostra tabela completa com todos os campos
-- Recarrega automaticamente a cada 60 segundos
+- **Tab Acervo**: cards com capa, título, autores e ano; filtros por idioma/fonte; edição inline de registros
+- **Tab Estantes**: configure estantes físicas (largura, espessura média) e gere sugestão de organização por autor, assunto ou ano
 
 ## Configuração
 
@@ -103,7 +102,7 @@ Abra em um segundo terminal enquanto o scanner roda. A UI:
 
 ```bash
 export ISBNDB_API_KEY="sua-chave-aqui"
-python main.py
+python scripts/main.py
 ```
 
 ## Fontes de metadados
@@ -123,6 +122,7 @@ O sistema tenta cada fonte em ordem e usa a primeira que retornar um título:
 |---|---|---|
 | `data/biblioteca.csv` | CSV com cabeçalho | Planilha (Excel / LibreOffice) |
 | `data/biblioteca.jsonl` | JSON Lines | Scripts, pandas, banco de dados |
+| `data/estantes.json` | JSON | Configuração das estantes (persiste entre sessões) |
 | `tmp/pendentes.txt` | Texto simples | Fila durável — recriado automaticamente |
 
 Os diretórios `data/` e `tmp/` são criados automaticamente na primeira execução.
@@ -140,14 +140,15 @@ Os diretórios `data/` e `tmp/` são criados automaticamente na primeira execuç
 | `idioma` | string | `pt` |
 | `assuntos` | string | `Fiction, Classic` |
 | `capa_url` | string | `https://...` |
-| `fonte` | string | `openlibrary` |
+| `fonte` | string | `openlibrary`, `googlebooks`, `mercadolivre`, `isbndb`, `nao_encontrado`, `manual` |
 | `data_cadastro` | string ISO 8601 | `2026-05-25T14:44:06` |
 
 ## Estrutura do projeto
 
 ```
 my-lib-catalog/
-├── main.py                  # CLI — entrada do usuário e orquestração
+├── scripts/
+│   └── main.py              # CLI — entrada do usuário e orquestração
 ├── pyproject.toml           # Dependências e configuração do projeto
 ├── CLAUDE.md                # Guia para agentes de IA
 ├── Makefile                 # Comandos de desenvolvimento
@@ -155,10 +156,11 @@ my-lib-catalog/
 │   ├── config.py            # Caminhos e variáveis de configuração
 │   ├── scanning/            # Validação e normalização de ISBN
 │   ├── metadata/            # Busca de metadados (APIs) e worker
-│   └── storage/             # Persistência (CSV + JSONL)
+│   ├── storage/             # Persistência (CSV + JSONL)
+│   └── organizer/           # Algoritmo de organização de estantes
 ├── ui/
-│   └── app.py               # Interface Streamlit (somente leitura)
-├── tests/                   # Suite pytest (42 testes)
+│   └── app.py               # Interface Streamlit (acervo + estantes)
+├── tests/                   # Suite pytest (65 testes)
 └── data/                    # Arquivos de saída (gerados)
 ```
 

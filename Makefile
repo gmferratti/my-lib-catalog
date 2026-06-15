@@ -14,7 +14,7 @@ install:        ## Cria .venv e instala todas as dependências
 	$(PIP) install -e ".[ui,dev]" -q
 
 run:            ## Inicia o scanner interativo (CLI)
-	$(PYTHON) main.py
+	$(PYTHON) scripts/main.py
 
 ui:             ## Abre a interface de consulta no navegador
 	$(STREAMLIT) run ui/app.py

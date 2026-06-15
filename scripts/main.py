@@ -21,7 +21,12 @@ Comandos durante a sessão:
 """
 
 import queue
+import sys
 import threading
+from pathlib import Path
+
+# Make src/ findable when running as `python scripts/main.py`
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from catalog.metadata import buscar_metadados, worker
 from catalog.scanning import normalizar_isbn
