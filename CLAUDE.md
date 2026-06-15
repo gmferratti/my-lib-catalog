@@ -1,6 +1,6 @@
 # my-lib-catalog — Guia para Agentes
 
-Catalogador pessoal de biblioteca via leitor de código de barras. O usuário escaneia ISBNs pela CLI; um worker em background busca metadados em 4 APIs e persiste em CSV + JSONL. A UI Streamlit serve exclusivamente para consulta e navegação do acervo.
+Catalogador pessoal de biblioteca via leitor de código de barras. O usuário escaneia ISBNs pela CLI; um worker em background busca metadados em 4 APIs e persiste em CSV + JSONL. A UI Streamlit serve para consulta/edição do acervo e organização física das estantes.
 
 ---
 
@@ -23,8 +23,9 @@ main.py  (CLI + orquestração)
     │
     └─→ catalog.storage.*  (leitura direta para reprocessar e duplicatas)
 
-ui/app.py  (Streamlit — processo separado, só lê dados)
-    └─→ catalog.storage.carregar_todos_registros()
+ui/app.py  (Streamlit — processo separado)
+    ├─→ catalog.storage.carregar_todos_registros()   [tab Acervo]
+    └─→ catalog.organizer.*                          [tab Estantes]
 ```
 
 ---
@@ -47,7 +48,7 @@ ui/app.py  (Streamlit — processo separado, só lê dados)
 | `fonte` | str | ver abaixo | qual API encontrou o livro |
 | `data_cadastro` | str | `"2026-05-25T14:44:06"` | ISO 8601, segundos |
 
-**Valores válidos de `fonte`:** `openlibrary`, `googlebooks`, `mercadolivre`, `isbndb`, `nao_encontrado`
+**Valores válidos de `fonte`:** `openlibrary`, `googlebooks`, `mercadolivre`, `isbndb`, `nao_encontrado`, `manual`
 
 ---
 
@@ -57,6 +58,7 @@ ui/app.py  (Streamlit — processo separado, só lê dados)
 |---|---|
 | `data/biblioteca.csv` | Planilha; abre direto no Excel/LibreOffice |
 | `data/biblioteca.jsonl` | JSON Lines; fonte de verdade para a UI e para `reprocessar` |
+| `data/estantes.json` | Configuração persistida das estantes (num estantes, prateleiras, largura_cm, espessura_media_cm) |
 | `tmp/pendentes.txt` | Fila durável; ISBNs enfileirados mas não processados; recarregado na próxima sessão |
 
 Os diretórios `data/` e `tmp/` são criados automaticamente ao importar `catalog.storage`.
@@ -93,8 +95,9 @@ Os diretórios `data/` e `tmp/` são criados automaticamente ao importar `catalo
 | `catalog.scanning` | stdlib | `catalog.metadata`, `catalog.storage` |
 | `catalog.metadata` | `catalog.config`, `catalog.storage`, stdlib, requests | `catalog.scanning`, `main` |
 | `catalog.storage` | `catalog.config`, stdlib | `catalog.scanning`, `catalog.metadata` |
+| `catalog.organizer` | `catalog.config`, stdlib | `catalog.metadata`, `catalog.scanning` |
 | `catalog.config` | stdlib (os) | qualquer outro módulo do projeto |
-| `ui.app` | `catalog.storage`, streamlit | `catalog.metadata`, `catalog.scanning`, `main` |
+| `ui.app` | `catalog.storage`, `catalog.organizer`, streamlit | `catalog.metadata`, `catalog.scanning`, `main` |
 | `main` | todos acima | — |
 
 ---
@@ -135,6 +138,13 @@ pip install -e ".[ui,dev]"   # ou: pip install requests streamlit pytest pytest-
 ### Novo filtro na UI
 
 Adicionar widget na sidebar de `ui/app.py`. Filtrar sobre a lista `registros` já carregada em memória — não ler o arquivo novamente.
+
+### Novo estilo de organização de estantes
+
+1. Adicionar a chave e o rótulo em `ESTILOS` em `ui/app.py`
+2. Implementar o case correspondente em `_ordenar()` em `catalog/organizer/algorithm.py`
+3. Implementar o label descritivo em `_label()` no mesmo arquivo
+4. Adicionar testes em `tests/test_organizer.py`
 
 ### Novo campo no schema
 
