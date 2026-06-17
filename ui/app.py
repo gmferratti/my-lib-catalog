@@ -46,6 +46,54 @@ ESTILOS = {
     "ano":     "Por ano (mais recente primeiro)",
 }
 
+_IDIOMA_NORM = {
+    "pt": "Português", "por": "Português", "pt-br": "Português", "pt-BR": "Português",
+    "en": "Inglês", "eng": "Inglês",
+    "es": "Espanhol", "spa": "Espanhol",
+    "fr": "Francês", "fra": "Francês",
+    "de": "Alemão", "deu": "Alemão", "ger": "Alemão",
+    "ja": "Japonês", "jpn": "Japonês",
+}
+
+
+def _estatisticas(registros: list[dict]) -> dict:
+    total = len(registros)
+    total_paginas = sum(
+        int(r["paginas"]) for r in registros
+        if str(r.get("paginas", "")).isdigit()
+    )
+    com_capa = sum(1 for r in registros if r.get("capa_url"))
+
+    contagem_idioma: dict[str, int] = {}
+    for r in registros:
+        cod = (r.get("idioma") or "").strip()
+        if not cod:
+            continue
+        nome = _IDIOMA_NORM.get(cod, cod)
+        contagem_idioma[nome] = contagem_idioma.get(nome, 0) + 1
+    idiomas = sorted(contagem_idioma.items(), key=lambda x: -x[1])
+
+    contagem_assunto: dict[str, int] = {}
+    for r in registros:
+        for termo in (r.get("assuntos") or "").split(","):
+            termo = termo.strip()
+            if termo:
+                contagem_assunto[termo] = contagem_assunto.get(termo, 0) + 1
+    assuntos = sorted(contagem_assunto.items(), key=lambda x: -x[1])[:5]
+
+    return {
+        "total": total,
+        "total_paginas": total_paginas,
+        "com_capa": com_capa,
+        "idiomas": idiomas,
+        "assuntos": assuntos,
+    }
+
+
+def _barra(valor: int, maximo: int, largura: int = 20) -> str:
+    preenchimento = round(valor / maximo * largura) if maximo else 0
+    return "█" * preenchimento
+
 
 # ── Cache helpers ─────────────────────────────────────────────────────────────
 
@@ -194,17 +242,33 @@ def _render_acervo() -> None:
     if ordem_sel != "cadastro":
         filtrados = _ordenar(filtrados, ordem_sel)
 
-    total = len(registros)
-    com_capa = sum(1 for r in registros if r.get("capa_url"))
-    sem_meta = sum(1 for r in registros if r.get("fonte") == "nao_encontrado")
-    manuais  = sum(1 for r in registros if r.get("fonte") == "manual")
+    stats = _estatisticas(registros)
 
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Total no acervo", total)
-    c2.metric("Exibindo", len(filtrados))
-    c3.metric("Com capa", com_capa)
-    c4.metric("Sem metadados", sem_meta)
-    c5.metric("Editados", manuais)
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Total no acervo", stats["total"])
+    m2.metric("Total de páginas", f"{stats['total_paginas']:,}".replace(",", "."))
+    m3.metric("Com capa", stats["com_capa"])
+
+    if stats["idiomas"] or stats["assuntos"]:
+        col_idioma, col_assunto = st.columns(2)
+        with col_idioma:
+            st.markdown("**📚 Por idioma**")
+            if stats["idiomas"]:
+                maximo_i = stats["idiomas"][0][1]
+                for nome, qtd in stats["idiomas"]:
+                    barra = _barra(qtd, maximo_i, largura=12)
+                    st.markdown(f"`{nome:<12}` {qtd:>4}  {barra}")
+            else:
+                st.caption("Sem dados de idioma.")
+        with col_assunto:
+            st.markdown("**🏷️ Top assuntos**")
+            if stats["assuntos"]:
+                maximo_a = stats["assuntos"][0][1]
+                for termo, qtd in stats["assuntos"]:
+                    barra = _barra(qtd, maximo_a, largura=12)
+                    st.markdown(f"`{termo:<20}` {qtd:>4}  {barra}")
+            else:
+                st.caption("Sem dados de assuntos.")
 
     st.divider()
 
