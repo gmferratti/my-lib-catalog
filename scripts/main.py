@@ -29,7 +29,7 @@ from pathlib import Path
 # Make src/ findable when running as `python scripts/main.py`
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from catalog.metadata import buscar_metadados, worker
+from catalog.metadata import buscar_capa, buscar_metadados, worker
 from catalog.scanning import normalizar_isbn
 from catalog.storage import (
     adicionar_pendente,
@@ -77,6 +77,29 @@ def _reprocessar_nao_encontrados() -> None:
         print(f"  → {atualizados} registro(s) atualizado(s).\n")
     else:
         print("  → Nenhum novo dado encontrado.\n")
+
+
+def _atualizar_capas() -> None:
+    registros = carregar_todos_registros()
+    if not registros:
+        print("  → Nenhum registro no acervo.\n")
+        return
+    print(f"  → Buscando capas para {len(registros)} livro(s)...")
+    atualizados = 0
+    for r in registros:
+        isbn = r["isbn"]
+        titulo = r.get("titulo") or isbn
+        nova_url = buscar_capa(isbn)
+        if nova_url != r.get("capa_url", ""):
+            r["capa_url"] = nova_url
+            atualizados += 1
+        simbolo = "✓" if nova_url else "—"
+        print(f"     {simbolo}  {titulo}")
+    if atualizados:
+        reescrever_registros(registros)
+        print(f"\n  → {atualizados} capa(s) atualizada(s).\n")
+    else:
+        print("\n  → Nenhuma capa nova encontrada.\n")
 
 
 def main() -> None:
@@ -159,8 +182,11 @@ def main() -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--reprocessar", action="store_true")
+    parser.add_argument("--capas", action="store_true")
     args, _ = parser.parse_known_args()
     if args.reprocessar:
         _reprocessar_nao_encontrados()
+    elif args.capas:
+        _atualizar_capas()
     else:
         main()
