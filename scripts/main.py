@@ -29,7 +29,8 @@ from pathlib import Path
 # Make src/ findable when running as `python scripts/main.py`
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from catalog.metadata import buscar_capa, buscar_metadados, worker
+from catalog.metadata import buscar_capa, buscar_metadados, limpar_cache_capa, verificar_capa, worker
+from catalog.metadata.api import _get_cache
 from catalog.scanning import normalizar_isbn
 from catalog.storage import (
     adicionar_pendente,
@@ -79,33 +80,49 @@ def _reprocessar_nao_encontrados() -> None:
         print("  → Nenhum novo dado encontrado.\n")
 
 
-def _atualizar_capas() -> None:
+def _atualizar_capas(fix: bool = False) -> None:
     registros = carregar_todos_registros()
     if not registros:
         print("  → Nenhum registro no acervo.\n")
         return
-    pendentes = [r for r in registros if not r.get("capa_url")]
-    ja_tem = len(registros) - len(pendentes)
-    if not pendentes:
-        print(f"  → Todos os {len(registros)} livro(s) já têm capa.\n")
-        return
-    print(f"  → {len(pendentes)} livro(s) sem capa (de {len(registros)} no acervo; {ja_tem} já têm).", flush=True)
+
+    if fix:
+        com_capa = [r for r in registros if r.get("capa_url")]
+        if com_capa:
+            print(f"  → Verificando {len(com_capa)} URL(s) existente(s)...", flush=True)
+            quebradas = 0
+            for r in com_capa:
+                if not verificar_capa(r["capa_url"]):
+                    print(f"     ✗  {r.get('titulo') or r['isbn']}", flush=True)
+                    r["capa_url"] = ""
+                    limpar_cache_capa(r["isbn"])
+                    quebradas += 1
+            if quebradas:
+                reescrever_registros(registros)
+                print(f"  → {quebradas} URL(s) quebrada(s) removida(s).\n", flush=True)
+            else:
+                print("  → Todas as capas OK.\n", flush=True)
+
+    total = len(registros)
+    print(f"  → {total} livro(s) — cache: pula já buscados...", flush=True)
     atualizados = 0
-    total = len(pendentes)
-    for i, r in enumerate(pendentes, 1):
+    for i, r in enumerate(registros, 1):
         isbn = r["isbn"]
         titulo = r.get("titulo") or isbn
+        em_cache = isbn in _get_cache()
         nova_url = buscar_capa(isbn)
-        if nova_url:
+        flag = "[cache]" if em_cache else "      "
+        simbolo = "✓" if nova_url else "—"
+        print(f"     [{i:>2}/{total}] {simbolo} {flag}  {titulo}", flush=True)
+        if nova_url != r.get("capa_url", ""):
             r["capa_url"] = nova_url
             atualizados += 1
-        simbolo = "✓" if nova_url else "—"
-        print(f"     [{i:>2}/{total}] {simbolo}  {titulo}", flush=True)
+
     if atualizados:
         reescrever_registros(registros)
-        print(f"\n  → {atualizados} capa(s) encontrada(s) / {total - atualizados} sem capa.\n")
+        print(f"\n  → {atualizados} registro(s) atualizado(s).\n")
     else:
-        print(f"\n  → Nenhuma capa nova encontrada ({total} livro(s) sem capa).\n")
+        print("\n  → Nenhuma alteração.\n")
 
 
 def main() -> None:
@@ -189,10 +206,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--reprocessar", action="store_true")
     parser.add_argument("--capas", action="store_true")
+    parser.add_argument("--fix", action="store_true")
     args, _ = parser.parse_known_args()
     if args.reprocessar:
         _reprocessar_nao_encontrados()
     elif args.capas:
-        _atualizar_capas()
+        _atualizar_capas(fix=args.fix)
     else:
         main()

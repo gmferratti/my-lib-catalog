@@ -4,6 +4,7 @@ CSV_FILE = "data/biblioteca.csv"
 ESTANTES_FILE = "data/estantes.json"
 JSON_FILE = "data/biblioteca.jsonl"
 PENDING_FILE = "tmp/pendentes.txt"
+CAPAS_CACHE_FILE = "data/capas_cache.json"
 
 CSV_HEADERS = [
     "isbn", "titulo", "autores", "editora", "ano",

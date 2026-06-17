@@ -1,7 +1,7 @@
 -include .env
 export
 
-.PHONY: install run ui reprocessar capas sync test test-v clean help
+.PHONY: install run ui reprocessar capas capas-fix sync test test-v clean help
 
 PYTHON  := .venv/bin/python
 PIP     := .venv/bin/pip
@@ -27,6 +27,9 @@ reprocessar:    ## Rebusca metadados para livros cadastrados com fonte=nao_encon
 
 capas:          ## Busca capas de alta qualidade para todos os livros do acervo
 	PYTHONPATH=. $(PYTHON) scripts/main.py --capas
+
+capas-fix:      ## Verifica URLs quebradas e rebusca capas ausentes
+	PYTHONPATH=. $(PYTHON) scripts/main.py --capas --fix
 
 sync:           ## Sincroniza o acervo com o GitHub (commit + push dos dados)
 	git add data/

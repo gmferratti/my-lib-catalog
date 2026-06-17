@@ -239,7 +239,13 @@ def _mock_head(mocker, status=200, content_length=None):
     return resp
 
 
+def _reset_cache(mocker):
+    mocker.patch.object(api_module, "_capas_cache", {})
+    mocker.patch("catalog.metadata.api._salvar_cache")
+
+
 def test_buscar_capa_ol_happy_path(mocker):
+    _reset_cache(mocker)
     mocker.patch("requests.head", return_value=_mock_head(mocker, status=200))
     from catalog.metadata.api import buscar_capa
     url = buscar_capa(ISBN)
@@ -255,6 +261,7 @@ def _mock_get_sem_cover(mocker):
 
 
 def test_buscar_capa_ol_cover_id_sucesso(mocker):
+    _reset_cache(mocker)
     ol_isbn_resp = _mock_head(mocker, status=404)
     ol_id_head = _mock_head(mocker, status=200)
 
@@ -274,6 +281,7 @@ def test_buscar_capa_ol_cover_id_sucesso(mocker):
 
 
 def test_buscar_capa_ol_404_fallback_gb(mocker):
+    _reset_cache(mocker)
     ol_resp = _mock_head(mocker, status=404)
     gb_data = {
         "totalItems": 1,
@@ -298,6 +306,7 @@ def test_buscar_capa_ol_404_fallback_gb(mocker):
 
 
 def test_buscar_capa_sem_resultado(mocker):
+    _reset_cache(mocker)
     mocker.patch("requests.head", return_value=_mock_head(mocker, status=404))
     gb_no_results = mocker.Mock()
     gb_no_results.status_code = 200
@@ -309,6 +318,7 @@ def test_buscar_capa_sem_resultado(mocker):
 
 
 def test_buscar_capa_gb_placeholder_rejeitado(mocker):
+    _reset_cache(mocker)
     ol_resp = _mock_head(mocker, status=404)
     gb_data = {
         "totalItems": 1,
@@ -330,7 +340,21 @@ def test_buscar_capa_gb_placeholder_rejeitado(mocker):
 
 
 def test_buscar_capa_erro_de_rede_nao_lanca(mocker):
+    _reset_cache(mocker)
     mocker.patch("requests.head", side_effect=requests.ConnectionError)
     mocker.patch("requests.get", side_effect=requests.ConnectionError)
     from catalog.metadata.api import buscar_capa
     assert buscar_capa(ISBN) == ""
+
+
+def test_buscar_capa_retorna_cache_sem_requisicao(mocker):
+    mocker.patch.object(api_module, "_capas_cache", {ISBN: "https://cached.example.com/capa.jpg"})
+    mocker.patch("catalog.metadata.api._salvar_cache")
+    mock_head = mocker.patch("requests.head")
+    mock_get = mocker.patch("requests.get")
+
+    from catalog.metadata.api import buscar_capa
+    url = buscar_capa(ISBN)
+    assert url == "https://cached.example.com/capa.jpg"
+    mock_head.assert_not_called()
+    mock_get.assert_not_called()

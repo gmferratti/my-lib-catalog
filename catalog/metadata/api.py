@@ -1,9 +1,11 @@
+import json
 import time
 from datetime import datetime
+from pathlib import Path
 
 import requests
 
-from ..config import CSV_HEADERS, GOOGLE_BOOKS_API_KEY, ISBNDB_API_KEY
+from ..config import CAPAS_CACHE_FILE, CSV_HEADERS, GOOGLE_BOOKS_API_KEY, ISBNDB_API_KEY
 
 
 def _get_json(
@@ -130,8 +132,54 @@ def buscar_isbndb(isbn: str) -> dict | None:
     }
 
 
+_capas_cache: dict | None = None
+
+
+def _get_cache() -> dict:
+    global _capas_cache
+    if _capas_cache is None:
+        try:
+            _capas_cache = json.loads(Path(CAPAS_CACHE_FILE).read_text(encoding="utf-8"))
+        except (FileNotFoundError, json.JSONDecodeError):
+            _capas_cache = {}
+    return _capas_cache
+
+
+def _salvar_cache() -> None:
+    Path(CAPAS_CACHE_FILE).write_text(
+        json.dumps(_get_cache(), indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+
+
+def limpar_cache_capa(isbn: str) -> None:
+    """Remove um ISBN do cache (ex: URL confirmada quebrada)."""
+    cache = _get_cache()
+    if isbn in cache:
+        del cache[isbn]
+        _salvar_cache()
+
+
+def verificar_capa(url: str) -> bool:
+    """Retorna True se a URL responde HTTP 200."""
+    try:
+        return requests.head(url, timeout=5).status_code == 200
+    except requests.RequestException:
+        return False
+
+
 def buscar_capa(isbn: str) -> str:
     """Busca capa de alta resolução. Retorna URL validada ou '' se nada disponível."""
+    cache = _get_cache()
+    if isbn in cache:
+        return cache[isbn]
+
+    url = _buscar_capa_rede(isbn)
+    cache[isbn] = url
+    _salvar_cache()
+    return url
+
+
+def _buscar_capa_rede(isbn: str) -> str:
     # Estágio 1 — Open Library por ISBN (Large depois Medium)
     for size in ("L", "M"):
         try:
