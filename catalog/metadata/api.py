@@ -132,34 +132,42 @@ def buscar_isbndb(isbn: str) -> dict | None:
 
 def buscar_capa(isbn: str) -> str:
     """Busca capa de alta resolução. Retorna URL validada ou '' se nada disponível."""
-    # Estágio 1 — Open Library Large
+    # Estágio 1 — Open Library por ISBN (Large depois Medium)
+    for size in ("L", "M"):
+        try:
+            r = requests.head(
+                f"https://covers.openlibrary.org/b/isbn/{isbn}-{size}.jpg?default=false",
+                timeout=5,
+            )
+            if r.status_code == 200:
+                return f"https://covers.openlibrary.org/b/isbn/{isbn}-{size}.jpg"
+        except requests.RequestException:
+            pass
+
+    # Estágio 2 — Open Library por cover_i (cobertura muito maior que por ISBN)
     try:
-        r = requests.head(
-            f"https://covers.openlibrary.org/b/isbn/{isbn}-L.jpg?default=false",
-            timeout=10,
+        data = _get_json(
+            f"https://openlibrary.org/search.json?isbn={isbn}&fields=cover_i",
+            tentativas=1, timeout=5,
         )
-        if r.status_code == 200:
-            return f"https://covers.openlibrary.org/b/isbn/{isbn}-L.jpg"
+        docs = (data or {}).get("docs", [])
+        cover_i = docs[0].get("cover_i") if docs else None
+        if cover_i:
+            r = requests.head(
+                f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg",
+                timeout=5,
+            )
+            if r.status_code == 200:
+                return f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg"
     except requests.RequestException:
         pass
 
-    # Estágio 1b — Open Library Medium
-    try:
-        r = requests.head(
-            f"https://covers.openlibrary.org/b/isbn/{isbn}-M.jpg?default=false",
-            timeout=10,
-        )
-        if r.status_code == 200:
-            return f"https://covers.openlibrary.org/b/isbn/{isbn}-M.jpg"
-    except requests.RequestException:
-        pass
-
-    # Estágio 2 — Google Books zoom=0
+    # Estágio 3 — Google Books zoom=0
     try:
         url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
         if GOOGLE_BOOKS_API_KEY:
             url += f"&key={GOOGLE_BOOKS_API_KEY}"
-        data = _get_json(url)
+        data = _get_json(url, tentativas=1, timeout=5)
         if not data or not data.get("totalItems"):
             return ""
         item = data["items"][0]
@@ -170,7 +178,7 @@ def buscar_capa(isbn: str) -> str:
             f"https://books.google.com/books/content"
             f"?id={volume_id}&printsec=frontcover&img=1&zoom=0"
         )
-        head = requests.head(capa_url, timeout=10)
+        head = requests.head(capa_url, timeout=5)
         tamanho = int(head.headers.get("Content-Length", 10_000))
         if tamanho > 5_000:
             return capa_url

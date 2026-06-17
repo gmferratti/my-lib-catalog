@@ -246,6 +246,33 @@ def test_buscar_capa_ol_happy_path(mocker):
     assert url == f"https://covers.openlibrary.org/b/isbn/{ISBN}-L.jpg"
 
 
+def _mock_get_sem_cover(mocker):
+    resp = mocker.Mock()
+    resp.status_code = 200
+    resp.json.return_value = {"docs": []}
+    resp.raise_for_status = mocker.Mock()
+    return resp
+
+
+def test_buscar_capa_ol_cover_id_sucesso(mocker):
+    ol_isbn_resp = _mock_head(mocker, status=404)
+    ol_id_head = _mock_head(mocker, status=200)
+
+    ol_search_resp = mocker.Mock()
+    ol_search_resp.status_code = 200
+    ol_search_resp.json.return_value = {"docs": [{"cover_i": 99999}]}
+    ol_search_resp.raise_for_status = mocker.Mock()
+
+    # OL-L 404, OL-M 404, cover_i HEAD 200
+    mocker.patch("requests.head", side_effect=[ol_isbn_resp, ol_isbn_resp, ol_id_head])
+    mocker.patch("requests.get", return_value=ol_search_resp)
+
+    from catalog.metadata.api import buscar_capa
+    url = buscar_capa(ISBN)
+    assert "covers.openlibrary.org/b/id/99999" in url
+    assert url.endswith("-L.jpg")
+
+
 def test_buscar_capa_ol_404_fallback_gb(mocker):
     ol_resp = _mock_head(mocker, status=404)
     gb_data = {
@@ -259,9 +286,10 @@ def test_buscar_capa_ol_404_fallback_gb(mocker):
 
     gb_head = _mock_head(mocker, status=200, content_length=50000)
 
-    # OL-Large 404, OL-Medium 404, GB HEAD ok
+    # OL-L 404, OL-M 404, GB HEAD ok
     mocker.patch("requests.head", side_effect=[ol_resp, ol_resp, gb_head])
-    mocker.patch("requests.get", return_value=gb_resp)
+    # OL cover_i search (sem resultado), depois GB API
+    mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), gb_resp])
 
     from catalog.metadata.api import buscar_capa
     url = buscar_capa(ISBN)
@@ -271,11 +299,11 @@ def test_buscar_capa_ol_404_fallback_gb(mocker):
 
 def test_buscar_capa_sem_resultado(mocker):
     mocker.patch("requests.head", return_value=_mock_head(mocker, status=404))
-    mocker.patch("requests.get", return_value=mocker.Mock(
-        status_code=200,
-        json=lambda: {"totalItems": 0},
-        raise_for_status=mocker.Mock(),
-    ))
+    gb_no_results = mocker.Mock()
+    gb_no_results.status_code = 200
+    gb_no_results.json.return_value = {"totalItems": 0}
+    gb_no_results.raise_for_status = mocker.Mock()
+    mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), gb_no_results])
     from catalog.metadata.api import buscar_capa
     assert buscar_capa(ISBN) == ""
 
@@ -293,9 +321,9 @@ def test_buscar_capa_gb_placeholder_rejeitado(mocker):
 
     gb_head = _mock_head(mocker, status=200, content_length=3000)
 
-    # OL-Large 404, OL-Medium 404, GB HEAD placeholder (≤5000 bytes)
+    # OL-L 404, OL-M 404, GB HEAD placeholder (≤5000 bytes)
     mocker.patch("requests.head", side_effect=[ol_resp, ol_resp, gb_head])
-    mocker.patch("requests.get", return_value=gb_resp)
+    mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), gb_resp])
 
     from catalog.metadata.api import buscar_capa
     assert buscar_capa(ISBN) == ""
@@ -303,5 +331,6 @@ def test_buscar_capa_gb_placeholder_rejeitado(mocker):
 
 def test_buscar_capa_erro_de_rede_nao_lanca(mocker):
     mocker.patch("requests.head", side_effect=requests.ConnectionError)
+    mocker.patch("requests.get", side_effect=requests.ConnectionError)
     from catalog.metadata.api import buscar_capa
     assert buscar_capa(ISBN) == ""
