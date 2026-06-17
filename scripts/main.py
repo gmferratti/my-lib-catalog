@@ -84,22 +84,28 @@ def _atualizar_capas() -> None:
     if not registros:
         print("  → Nenhum registro no acervo.\n")
         return
-    print(f"  → Buscando capas para {len(registros)} livro(s)...")
+    pendentes = [r for r in registros if not r.get("capa_url")]
+    ja_tem = len(registros) - len(pendentes)
+    if not pendentes:
+        print(f"  → Todos os {len(registros)} livro(s) já têm capa.\n")
+        return
+    print(f"  → {len(pendentes)} livro(s) sem capa (de {len(registros)} no acervo; {ja_tem} já têm).", flush=True)
     atualizados = 0
-    for r in registros:
+    total = len(pendentes)
+    for i, r in enumerate(pendentes, 1):
         isbn = r["isbn"]
         titulo = r.get("titulo") or isbn
         nova_url = buscar_capa(isbn)
-        if nova_url != r.get("capa_url", ""):
+        if nova_url:
             r["capa_url"] = nova_url
             atualizados += 1
         simbolo = "✓" if nova_url else "—"
-        print(f"     {simbolo}  {titulo}")
+        print(f"     [{i:>2}/{total}] {simbolo}  {titulo}", flush=True)
     if atualizados:
         reescrever_registros(registros)
-        print(f"\n  → {atualizados} capa(s) atualizada(s).\n")
+        print(f"\n  → {atualizados} capa(s) encontrada(s) / {total - atualizados} sem capa.\n")
     else:
-        print("\n  → Nenhuma capa nova encontrada.\n")
+        print(f"\n  → Nenhuma capa nova encontrada ({total} livro(s) sem capa).\n")
 
 
 def main() -> None:
