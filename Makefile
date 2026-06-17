@@ -1,4 +1,7 @@
-.PHONY: install run ui test lint clean help
+-include .env
+export
+
+.PHONY: install run ui reprocessar test test-v clean help
 
 PYTHON  := .venv/bin/python
 PIP     := .venv/bin/pip
@@ -14,10 +17,13 @@ install:        ## Cria .venv e instala todas as dependências
 	$(PIP) install -e ".[ui,dev]" -q
 
 run:            ## Inicia o scanner interativo (CLI)
-	$(PYTHON) scripts/main.py
+	PYTHONPATH=. $(PYTHON) scripts/main.py
 
 ui:             ## Abre a interface de consulta no navegador
 	$(STREAMLIT) run ui/app.py
+
+reprocessar:    ## Rebusca metadados para livros cadastrados com fonte=nao_encontrado
+	PYTHONPATH=. $(PYTHON) scripts/main.py --reprocessar
 
 test:           ## Roda a suite de testes
 	$(PYTEST)

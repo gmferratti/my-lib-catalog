@@ -20,6 +20,7 @@ Comandos durante a sessão:
   Ctrl+C       : interrompe; ISBNs pendentes ficam pra próxima execução
 """
 
+import argparse
 import queue
 import sys
 import threading
@@ -155,4 +156,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--reprocessar", action="store_true")
+    args, _ = parser.parse_known_args()
+    if args.reprocessar:
+        _reprocessar_nao_encontrados()
+    else:
+        main()

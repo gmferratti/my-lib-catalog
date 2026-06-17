@@ -1,6 +1,5 @@
 isbn,titulo,autores,editora,ano,paginas,idioma,assuntos,capa_url,fonte,data_cadastro
-9781098115784,Machine Learning Design Patterns,"Valliappa Lakshmanan, Sara Robinson, Michael Munn","O'Reilly Media, Incorporated",2020,400,,Science,,openlibrary,2026-05-25T14:44:06
-9786586057041,,,,,,,,,nao_encontrado,2026-05-25T14:44:42
-9781492079392,Data Science on AWS,"Chris Fregly, Antje Barth",O'Reilly Media,2021,524,,Mathematics,https://covers.openlibrary.org/b/id/11085790-M.jpg,openlibrary,2026-05-25T14:44:52
-9786598896218,,,,,,,,,nao_encontrado,2026-05-25T14:51:31
-9788575229903,,,,,,,,,nao_encontrado,2026-05-25T14:52:27
+9781098115784,Machine Learning Design Patterns,"Valliappa Lakshmanan, Sara Robinson, Michael Munn","O'Reilly Media, Incorporated",2020,400,eng,Science,,openlibrary,2026-06-17T17:13:05
+9786598896218,"Python Fluente, 2ª edição, volume 1","Luciano Ramalho, Paulo Cândido",Heinar Gonçalves,2025,403,pt,"Ciência da Computação, Python, Programação, ciência_de_dados",,brasilapi,2026-06-17T17:13:13
+9788551012239,Katabasis,R. F. Kuang,Harper Voyager,2025,560,eng,"form:novel, genre:fantasy",https://covers.openlibrary.org/b/id/15117021-M.jpg,openlibrary,2026-06-17T17:13:16
+9786555985337,パラサイト・イヴ,Hideaki Sena,Darkside Books,1998,320,por,"Fiction, horror, Fiction, medical, Kidneys, Transplantation, Fiction",https://covers.openlibrary.org/b/id/4976272-M.jpg,openlibrary,2026-06-17T17:13:32
