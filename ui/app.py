@@ -244,31 +244,12 @@ def _render_acervo() -> None:
 
     stats = _estatisticas(registros)
 
-    m1, m2, m3 = st.columns(3)
+    m1, m2, m3, m4, m5 = st.columns(5)
     m1.metric("Total no acervo", stats["total"])
-    m2.metric("Total de páginas", f"{stats['total_paginas']:,}".replace(",", "."))
-    m3.metric("Com capa", stats["com_capa"])
-
-    if stats["idiomas"] or stats["assuntos"]:
-        col_idioma, col_assunto = st.columns(2)
-        with col_idioma:
-            st.markdown("**📚 Por idioma**")
-            if stats["idiomas"]:
-                maximo_i = stats["idiomas"][0][1]
-                for nome, qtd in stats["idiomas"]:
-                    barra = _barra(qtd, maximo_i, largura=12)
-                    st.markdown(f"`{nome:<12}` {qtd:>4}  {barra}")
-            else:
-                st.caption("Sem dados de idioma.")
-        with col_assunto:
-            st.markdown("**🏷️ Top assuntos**")
-            if stats["assuntos"]:
-                maximo_a = stats["assuntos"][0][1]
-                for termo, qtd in stats["assuntos"]:
-                    barra = _barra(qtd, maximo_a, largura=12)
-                    st.markdown(f"`{termo:<20}` {qtd:>4}  {barra}")
-            else:
-                st.caption("Sem dados de assuntos.")
+    m2.metric("Exibindo", len(filtrados))
+    m3.metric("Total de páginas", f"{stats['total_paginas']:,}".replace(",", "."))
+    m4.metric("Com capa", stats["com_capa"])
+    m5.metric("Sem metadados", sum(1 for r in registros if r.get("fonte") == "nao_encontrado"))
 
     st.divider()
 
