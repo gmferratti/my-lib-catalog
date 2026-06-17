@@ -130,6 +130,56 @@ def buscar_isbndb(isbn: str) -> dict | None:
     }
 
 
+def buscar_capa(isbn: str) -> str:
+    """Busca capa de alta resolução. Retorna URL validada ou '' se nada disponível."""
+    # Estágio 1 — Open Library Large
+    try:
+        r = requests.head(
+            f"https://covers.openlibrary.org/b/isbn/{isbn}-L.jpg?default=false",
+            timeout=10,
+        )
+        if r.status_code == 200:
+            return f"https://covers.openlibrary.org/b/isbn/{isbn}-L.jpg"
+    except requests.RequestException:
+        pass
+
+    # Estágio 1b — Open Library Medium
+    try:
+        r = requests.head(
+            f"https://covers.openlibrary.org/b/isbn/{isbn}-M.jpg?default=false",
+            timeout=10,
+        )
+        if r.status_code == 200:
+            return f"https://covers.openlibrary.org/b/isbn/{isbn}-M.jpg"
+    except requests.RequestException:
+        pass
+
+    # Estágio 2 — Google Books zoom=0
+    try:
+        url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
+        if GOOGLE_BOOKS_API_KEY:
+            url += f"&key={GOOGLE_BOOKS_API_KEY}"
+        data = _get_json(url)
+        if not data or not data.get("totalItems"):
+            return ""
+        item = data["items"][0]
+        if not item.get("volumeInfo", {}).get("imageLinks"):
+            return ""
+        volume_id = item["id"]
+        capa_url = (
+            f"https://books.google.com/books/content"
+            f"?id={volume_id}&printsec=frontcover&img=1&zoom=0"
+        )
+        head = requests.head(capa_url, timeout=10)
+        tamanho = int(head.headers.get("Content-Length", 10_000))
+        if tamanho > 5_000:
+            return capa_url
+    except requests.RequestException:
+        pass
+
+    return ""
+
+
 def buscar_metadados(isbn: str) -> dict:
     """Cascata de APIs. ISBNs brasileiros (978-85/978-65) consultam BrasilAPI primeiro."""
     e_brasileiro = isbn.startswith("97885") or isbn.startswith("97865")

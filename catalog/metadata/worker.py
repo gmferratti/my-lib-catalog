@@ -2,7 +2,7 @@ import queue
 import threading
 from collections.abc import Callable
 
-from .api import buscar_metadados
+from .api import buscar_capa, buscar_metadados
 from ..storage.persistence import remover_pendente, salvar
 
 
@@ -27,6 +27,7 @@ def worker(
 
         try:
             registro = buscar_metadados(isbn)
+            registro["capa_url"] = buscar_capa(isbn)
             salvar(registro)
             remover_pendente(isbn)
             if on_result is not None:
