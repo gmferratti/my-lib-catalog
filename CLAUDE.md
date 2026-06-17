@@ -17,7 +17,7 @@ main.py  (CLI + orquestração)
     │         └─→ catalog.metadata.worker()  [thread background]
     │                   │
     │                   ├─→ catalog.metadata.buscar_metadados()
-    │                   │         Open Library → Google Books → Mercado Livre → ISBNdb
+    │                   │         Open Library → Google Books → BrasilAPI → ISBNdb
     │                   │
     │                   └─→ catalog.storage.salvar()
     │
@@ -48,7 +48,7 @@ ui/app.py  (Streamlit — processo separado)
 | `fonte` | str | ver abaixo | qual API encontrou o livro |
 | `data_cadastro` | str | `"2026-05-25T14:44:06"` | ISO 8601, segundos |
 
-**Valores válidos de `fonte`:** `openlibrary`, `googlebooks`, `mercadolivre`, `isbndb`, `nao_encontrado`, `manual`
+**Valores válidos de `fonte`:** `openlibrary`, `googlebooks`, `brasilapi`, `isbndb`, `nao_encontrado`, `manual`
 
 ---
 
@@ -77,9 +77,9 @@ Os diretórios `data/` e `tmp/` são criados automaticamente ao importar `catalo
 
 **Ordem fixa — não reordenar:**
 
-1. **Open Library** — gratuita, sem auth, boa cobertura em inglês
-2. **Google Books** — sem chave, melhor cobertura internacional
-3. **Mercado Livre** — marketplace brasileiro; fallback para ISBNs nacionais. Qualidade inferior (produto de usuário, não fonte bibliográfica). Existe porque recupera ISBNs brasileiros que OL/GB não indexam.
+1. **Open Library** — gratuita, sem auth; usa endpoint `/search.json`
+2. **Google Books** — usa `GOOGLE_BOOKS_API_KEY` quando configurada (1000 req/dia); sem chave usa cota anônima compartilhada que esgota facilmente
+3. **BrasilAPI** — agrega CBL e outras fontes brasileiras; gratuita, sem auth; retorna 400 para ISBNs não brasileiros (tratado como None)
 4. **ISBNdb** — cobertura ampla incluindo editoras brasileiras; requer chave gratuita (500 req/mês)
 
 **Para adicionar nova fonte:** inserir após ISBNdb na lista em `buscar_metadados()`. Retornar `None` em falha, dict com os campos do schema em sucesso. O campo `fonte` deve ser um identificador snake_case sem espaços.
@@ -122,7 +122,10 @@ pip install -e ".[ui,dev]"   # ou: pip install requests streamlit pytest pytest-
 
 | Variável | Padrão | Uso |
 |---|---|---|
+| `GOOGLE_BOOKS_API_KEY` | `""` | Chave do Google Cloud (Books API). Sem ela usa cota anônima compartilhada, que esgota diariamente. |
 | `ISBNDB_API_KEY` | `""` | Chave gratuita do ISBNdb. Sem ela, `buscar_isbndb` é ignorado. |
+
+As chaves ficam em `.env` (já no `.gitignore`). O Makefile carrega o arquivo automaticamente via `-include .env`.
 
 ---
 

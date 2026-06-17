@@ -3,7 +3,7 @@ from datetime import datetime
 
 import requests
 
-from ..config import CSV_HEADERS, ISBNDB_API_KEY
+from ..config import CSV_HEADERS, GOOGLE_BOOKS_API_KEY, ISBNDB_API_KEY
 
 
 def _get_json(
@@ -33,32 +33,33 @@ def _get_json(
 
 
 def buscar_open_library(isbn: str) -> dict | None:
-    url = f"https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data"
+    url = f"https://openlibrary.org/search.json?isbn={isbn}&fields=title,author_name,publisher,first_publish_year,number_of_pages_median,language,subject,cover_i"
     try:
         data = _get_json(url)
     except (requests.RequestException, ValueError):
         return None
-    if not data:
+    docs = (data or {}).get("docs", [])
+    if not docs:
         return None
-    chave = f"ISBN:{isbn}"
-    if chave not in data:
-        return None
-    livro = data[chave]
+    livro = docs[0]
+    cover_i = livro.get("cover_i")
     return {
         "titulo": livro.get("title", ""),
-        "autores": ", ".join(a.get("name", "") for a in livro.get("authors", [])),
-        "editora": ", ".join(p.get("name", "") for p in livro.get("publishers", [])),
-        "ano": (livro.get("publish_date") or "")[-4:],
-        "paginas": livro.get("number_of_pages", ""),
-        "idioma": "",
-        "assuntos": ", ".join(s.get("name", "") for s in livro.get("subjects", [])[:5]),
-        "capa_url": livro.get("cover", {}).get("medium", ""),
+        "autores": ", ".join(livro.get("author_name", [])),
+        "editora": ", ".join(livro.get("publisher", [])[:1]),
+        "ano": str(livro.get("first_publish_year", "")),
+        "paginas": livro.get("number_of_pages_median", ""),
+        "idioma": ", ".join(livro.get("language", [])[:1]),
+        "assuntos": ", ".join(livro.get("subject", [])[:5]),
+        "capa_url": f"https://covers.openlibrary.org/b/id/{cover_i}-M.jpg" if cover_i else "",
         "fonte": "openlibrary",
     }
 
 
 def buscar_google_books(isbn: str) -> dict | None:
     url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
+    if GOOGLE_BOOKS_API_KEY:
+        url += f"&key={GOOGLE_BOOKS_API_KEY}"
     try:
         data = _get_json(url)
     except (requests.RequestException, ValueError):
@@ -79,30 +80,24 @@ def buscar_google_books(isbn: str) -> dict | None:
     }
 
 
-def buscar_mercado_livre(isbn: str) -> dict | None:
-    """Fallback para livros nacionais não indexados em Open Library/Google Books."""
-    url = f"https://api.mercadolibre.com/sites/MLB/search?q={isbn}"
+def buscar_brasil_api(isbn: str) -> dict | None:
+    """Fallback para livros nacionais via BrasilAPI (agrega CBL e outras fontes BR)."""
     try:
-        data = _get_json(url)
+        data = _get_json(f"https://brasilapi.com.br/api/isbn/v1/{isbn}")
     except (requests.RequestException, ValueError):
         return None
-    if not data or not data.get("results"):
+    if not data or not data.get("title"):
         return None
-    item = data["results"][0]
-    titulo = item.get("title", "")
-    if not titulo:
-        return None
-    attrs = {a["id"]: a.get("value_name", "") for a in item.get("attributes", [])}
     return {
-        "titulo": titulo,
-        "autores": attrs.get("AUTHOR", ""),
-        "editora": attrs.get("PUBLISHER", ""),
-        "ano": attrs.get("PUBLICATION_YEAR", ""),
-        "paginas": attrs.get("NUMBER_OF_PAGES", ""),
-        "idioma": attrs.get("LANGUAGE", "pt"),
-        "assuntos": "",
-        "capa_url": item.get("thumbnail", ""),
-        "fonte": "mercadolivre",
+        "titulo": data.get("title", ""),
+        "autores": ", ".join(data.get("authors") or []),
+        "editora": data.get("publisher", ""),
+        "ano": str(data.get("year", "")),
+        "paginas": data.get("page_count", ""),
+        "idioma": "pt",
+        "assuntos": ", ".join((data.get("subjects") or [])[:5]),
+        "capa_url": data.get("cover_url") or "",
+        "fonte": "brasilapi",
     }
 
 
@@ -137,7 +132,7 @@ def buscar_isbndb(isbn: str) -> dict | None:
 
 def buscar_metadados(isbn: str) -> dict:
     """Open Library → Google Books → Mercado Livre → ISBNdb como fallbacks."""
-    for buscar in [buscar_open_library, buscar_google_books, buscar_mercado_livre, buscar_isbndb]:
+    for buscar in [buscar_open_library, buscar_google_books, buscar_brasil_api, buscar_isbndb]:
         dados = buscar(isbn)
         if dados and dados.get("titulo"):
             break

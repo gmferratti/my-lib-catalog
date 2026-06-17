@@ -10,7 +10,9 @@ CSV_HEADERS = [
     "paginas", "idioma", "assuntos", "capa_url", "fonte", "data_cadastro",
 ]
 
+# Chave gratuita em https://console.cloud.google.com/ (Books API, 1000 req/dia).
+# Sem a chave, usa cota anônima compartilhada — esgota facilmente.
+GOOGLE_BOOKS_API_KEY = os.environ.get("GOOGLE_BOOKS_API_KEY", "")
+
 # Chave gratuita em https://isbndb.com/isbn-database (plano Free: 500 req/mês)
-# Sem a chave, livros brasileiros dificilmente serão encontrados.
-# Configure via variável de ambiente: export ISBNDB_API_KEY="sua-chave"
 ISBNDB_API_KEY = os.environ.get("ISBNDB_API_KEY", "")

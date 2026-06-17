@@ -3,14 +3,15 @@ import requests
 
 import catalog.metadata.api as api_module
 from catalog.metadata.api import (
+    buscar_brasil_api,
     buscar_google_books,
     buscar_isbndb,
-    buscar_mercado_livre,
     buscar_metadados,
     buscar_open_library,
 )
 
 ISBN = "9781098115784"
+ISBN_BR = "9788551012239"
 
 
 def _mock_resp(mocker, payload, status=200):
@@ -27,26 +28,29 @@ def _mock_resp(mocker, payload, status=200):
 
 def test_open_library_happy_path(mocker):
     payload = {
-        f"ISBN:{ISBN}": {
+        "docs": [{
             "title": "Machine Learning Design Patterns",
-            "authors": [{"name": "Valliappa Lakshmanan"}],
-            "publishers": [{"name": "O'Reilly"}],
-            "publish_date": "2020",
-            "number_of_pages": 400,
-            "subjects": [{"name": "Science"}],
-            "cover": {"medium": "https://example.com/cover.jpg"},
-        }
+            "author_name": ["Valliappa Lakshmanan", "Sara Robinson"],
+            "publisher": ["O'Reilly"],
+            "first_publish_year": 2020,
+            "number_of_pages_median": 400,
+            "language": ["eng"],
+            "subject": ["Science", "Mathematics"],
+            "cover_i": 12345,
+        }]
     }
     mocker.patch("requests.get", return_value=_mock_resp(mocker, payload))
     result = buscar_open_library(ISBN)
     assert result is not None
     assert result["titulo"] == "Machine Learning Design Patterns"
     assert result["fonte"] == "openlibrary"
-    assert result["autores"] == "Valliappa Lakshmanan"
+    assert result["autores"] == "Valliappa Lakshmanan, Sara Robinson"
+    assert result["ano"] == "2020"
+    assert "covers.openlibrary.org" in result["capa_url"]
 
 
-def test_open_library_isbn_nao_encontrado(mocker):
-    mocker.patch("requests.get", return_value=_mock_resp(mocker, {}))
+def test_open_library_sem_docs(mocker):
+    mocker.patch("requests.get", return_value=_mock_resp(mocker, {"docs": []}))
     assert buscar_open_library(ISBN) is None
 
 
@@ -94,38 +98,38 @@ def test_google_books_connection_error(mocker):
 
 
 # ──────────────────────────────────────────────
-# buscar_mercado_livre
+# buscar_brasil_api
 # ──────────────────────────────────────────────
 
-def test_mercado_livre_happy_path(mocker):
+def test_brasil_api_happy_path(mocker):
     payload = {
-        "results": [{
-            "title": "Machine Learning Design Patterns",
-            "thumbnail": "https://example.com/thumb.jpg",
-            "attributes": [
-                {"id": "AUTHOR", "value_name": "Sara Robinson"},
-                {"id": "PUBLISHER", "value_name": "O'Reilly"},
-                {"id": "PUBLICATION_YEAR", "value_name": "2020"},
-                {"id": "NUMBER_OF_PAGES", "value_name": "400"},
-                {"id": "LANGUAGE", "value_name": "Inglês"},
-            ],
-        }]
+        "isbn": ISBN_BR,
+        "title": "Katábasis",
+        "authors": ["R.F. Kuang", "Marina Vargas"],
+        "publisher": "Intrínseca",
+        "year": 2025,
+        "page_count": 480,
+        "subjects": ["Literatura americana", "Fantasia"],
+        "cover_url": None,
     }
     mocker.patch("requests.get", return_value=_mock_resp(mocker, payload))
-    result = buscar_mercado_livre(ISBN)
+    result = buscar_brasil_api(ISBN_BR)
     assert result is not None
-    assert result["titulo"] == "Machine Learning Design Patterns"
-    assert result["fonte"] == "mercadolivre"
+    assert result["titulo"] == "Katábasis"
+    assert result["autores"] == "R.F. Kuang, Marina Vargas"
+    assert result["fonte"] == "brasilapi"
+    assert result["ano"] == "2025"
+    assert result["idioma"] == "pt"
 
 
-def test_mercado_livre_sem_resultados(mocker):
-    mocker.patch("requests.get", return_value=_mock_resp(mocker, {"results": []}))
-    assert buscar_mercado_livre(ISBN) is None
+def test_brasil_api_sem_titulo(mocker):
+    mocker.patch("requests.get", return_value=_mock_resp(mocker, {"isbn": ISBN_BR}))
+    assert buscar_brasil_api(ISBN_BR) is None
 
 
-def test_mercado_livre_connection_error(mocker):
+def test_brasil_api_connection_error(mocker):
     mocker.patch("requests.get", side_effect=requests.ConnectionError)
-    assert buscar_mercado_livre(ISBN) is None
+    assert buscar_brasil_api(ISBN_BR) is None
 
 
 # ──────────────────────────────────────────────
@@ -133,7 +137,7 @@ def test_mercado_livre_connection_error(mocker):
 # ──────────────────────────────────────────────
 
 def test_isbndb_ignorado_sem_chave(mocker):
-    monkeypatch_key = mocker.patch.object(api_module, "ISBNDB_API_KEY", "")
+    mocker.patch.object(api_module, "ISBNDB_API_KEY", "")
     mock_get = mocker.patch("requests.get")
     result = buscar_isbndb(ISBN)
     assert result is None
@@ -183,7 +187,7 @@ def test_cascata_para_no_primeiro_sucesso(mocker):
 def test_cascata_exaurida_retorna_nao_encontrado(mocker):
     mocker.patch.object(api_module, "buscar_open_library", return_value=None)
     mocker.patch.object(api_module, "buscar_google_books", return_value=None)
-    mocker.patch.object(api_module, "buscar_mercado_livre", return_value=None)
+    mocker.patch.object(api_module, "buscar_brasil_api", return_value=None)
     mocker.patch.object(api_module, "buscar_isbndb", return_value=None)
     result = buscar_metadados(ISBN)
     assert result["fonte"] == "nao_encontrado"
@@ -193,7 +197,7 @@ def test_cascata_exaurida_retorna_nao_encontrado(mocker):
 def test_resultado_sempre_tem_isbn_e_data(mocker):
     mocker.patch.object(api_module, "buscar_open_library", return_value=None)
     mocker.patch.object(api_module, "buscar_google_books", return_value=None)
-    mocker.patch.object(api_module, "buscar_mercado_livre", return_value=None)
+    mocker.patch.object(api_module, "buscar_brasil_api", return_value=None)
     mocker.patch.object(api_module, "buscar_isbndb", return_value=None)
     result = buscar_metadados(ISBN)
     assert result["isbn"] == ISBN
