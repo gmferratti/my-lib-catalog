@@ -13,6 +13,7 @@ from catalog.organizer import (
     organizar,
     salvar_config,
 )
+from catalog.organizer.algorithm import _ordenar
 from catalog.storage import carregar_todos_registros, reescrever_registros
 
 st.set_page_config(
@@ -24,7 +25,7 @@ st.set_page_config(
 FONTE_CORES = {
     "openlibrary":    "#2e7d32",
     "googlebooks":    "#1565c0",
-    "mercadolivre":   "#f9a825",
+    "brasilapi":      "#f9a825",
     "isbndb":         "#6a1b9a",
     "nao_encontrado": "#b71c1c",
     "manual":         "#37474f",
@@ -33,7 +34,7 @@ FONTE_CORES = {
 FONTE_LABELS = {
     "openlibrary":    "Open Library",
     "googlebooks":    "Google Books",
-    "mercadolivre":   "Mercado Livre",
+    "brasilapi":      "BrasilAPI",
     "isbndb":         "ISBNdb",
     "nao_encontrado": "Não encontrado",
     "manual":         "Manual",
@@ -163,6 +164,15 @@ def _render_acervo() -> None:
         fonte_sel = st.selectbox("Fonte", ["Todas"] + fontes_disp)
         ocultar_sem_meta = st.checkbox("Ocultar sem metadados", value=False)
         st.divider()
+        st.subheader("Ordenação")
+        ESTILOS_ACERVO = {"cadastro": "Ordem de cadastro"} | ESTILOS
+        ordem_sel = st.selectbox(
+            "Ordenar por",
+            options=list(ESTILOS_ACERVO.keys()),
+            format_func=lambda k: ESTILOS_ACERVO[k],
+            label_visibility="collapsed",
+        )
+        st.divider()
         modo_edicao = st.toggle("✏️ Modo edição", value=False,
                                 help="Exibe botão de edição em cada card")
         st.divider()
@@ -181,6 +191,8 @@ def _render_acervo() -> None:
         filtrados = [r for r in filtrados if r.get("idioma") == idioma_sel]
     if fonte_sel != "Todas":
         filtrados = [r for r in filtrados if r.get("fonte") == fonte_sel]
+    if ordem_sel != "cadastro":
+        filtrados = _ordenar(filtrados, ordem_sel)
 
     total = len(registros)
     com_capa = sum(1 for r in registros if r.get("capa_url"))

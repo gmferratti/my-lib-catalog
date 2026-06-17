@@ -1,7 +1,7 @@
 -include .env
 export
 
-.PHONY: install run ui reprocessar test test-v clean help
+.PHONY: install run ui reprocessar sync test test-v clean help
 
 PYTHON  := .venv/bin/python
 PIP     := .venv/bin/pip
@@ -24,6 +24,11 @@ ui:             ## Abre a interface de consulta no navegador
 
 reprocessar:    ## Rebusca metadados para livros cadastrados com fonte=nao_encontrado
 	PYTHONPATH=. $(PYTHON) scripts/main.py --reprocessar
+
+sync:           ## Sincroniza o acervo com o GitHub (commit + push dos dados)
+	git add data/
+	git diff --cached --quiet || git commit -m "chore(data): sincronizar acervo"
+	git push
 
 test:           ## Roda a suite de testes
 	$(PYTEST)

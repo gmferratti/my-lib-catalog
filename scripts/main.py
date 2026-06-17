@@ -92,8 +92,9 @@ def main() -> None:
     if pendentes:
         print(f"    {len(pendentes)} ISBN(s) pendente(s) da última sessão — re-enfileirando.")
         for isbn in pendentes:
+            if isbn not in conhecidos:  # já salvo em disco não precisa ser re-processado
+                fila.put(isbn)
             conhecidos.add(isbn)
-            fila.put(isbn)
 
     if conhecidos:
         print(f"    {len(conhecidos)} ISBN(s) conhecido(s) no acervo.\n")

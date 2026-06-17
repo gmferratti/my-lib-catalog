@@ -131,8 +131,13 @@ def buscar_isbndb(isbn: str) -> dict | None:
 
 
 def buscar_metadados(isbn: str) -> dict:
-    """Open Library → Google Books → Mercado Livre → ISBNdb como fallbacks."""
-    for buscar in [buscar_open_library, buscar_google_books, buscar_brasil_api, buscar_isbndb]:
+    """Cascata de APIs. ISBNs brasileiros (978-85/978-65) consultam BrasilAPI primeiro."""
+    e_brasileiro = isbn.startswith("97885") or isbn.startswith("97865")
+    if e_brasileiro:
+        fontes = [buscar_brasil_api, buscar_open_library, buscar_google_books, buscar_isbndb]
+    else:
+        fontes = [buscar_open_library, buscar_google_books, buscar_brasil_api, buscar_isbndb]
+    for buscar in fontes:
         dados = buscar(isbn)
         if dados and dados.get("titulo"):
             break

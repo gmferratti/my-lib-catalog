@@ -202,3 +202,24 @@ def test_resultado_sempre_tem_isbn_e_data(mocker):
     result = buscar_metadados(ISBN)
     assert result["isbn"] == ISBN
     assert result["data_cadastro"] != ""
+
+
+def test_isbn_brasileiro_consulta_brasil_api_primeiro(mocker):
+    sucesso = {"titulo": "Livro BR", "fonte": "brasilapi"}
+    mock_br = mocker.patch.object(api_module, "buscar_brasil_api", return_value=sucesso)
+    mock_ol = mocker.patch.object(api_module, "buscar_open_library")
+    result = buscar_metadados(ISBN_BR)
+    assert result["titulo"] == "Livro BR"
+    mock_br.assert_called_once_with(ISBN_BR)
+    mock_ol.assert_not_called()
+
+
+def test_isbn_brasileiro_fallback_para_ol_quando_brasil_api_falha(mocker):
+    mocker.patch.object(api_module, "buscar_brasil_api", return_value=None)
+    sucesso_ol = {"titulo": "Livro via OL", "fonte": "openlibrary"}
+    mocker.patch.object(api_module, "buscar_open_library", return_value=sucesso_ol)
+    mocker.patch.object(api_module, "buscar_google_books", return_value=None)
+    mocker.patch.object(api_module, "buscar_isbndb", return_value=None)
+    result = buscar_metadados(ISBN_BR)
+    assert result["titulo"] == "Livro via OL"
+    assert result["fonte"] == "openlibrary"
