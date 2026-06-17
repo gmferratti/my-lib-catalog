@@ -1,0 +1,26 @@
+{
+  "estantes": [
+    {
+      "nome": "Estante 1",
+      "prateleiras": [
+        {
+          "nome": "A",
+          "largura_cm": 80.0
+        },
+        {
+          "nome": "B",
+          "largura_cm": 80.0
+        },
+        {
+          "nome": "C",
+          "largura_cm": 80.0
+        },
+        {
+          "nome": "D",
+          "largura_cm": 80.0
+        }
+      ]
+    }
+  ],
+  "espessura_media_cm": 2.5
+}

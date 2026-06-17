@@ -1,5 +1,65 @@
 isbn,titulo,autores,editora,ano,paginas,idioma,assuntos,capa_url,fonte,data_cadastro
 9781098115784,Machine Learning Design Patterns,"Valliappa Lakshmanan, Sara Robinson, Michael Munn","O'Reilly Media, Incorporated",2020,400,eng,Science,,openlibrary,2026-06-17T17:13:05
 9786598896218,"Python Fluente, 2ª edição, volume 1","Luciano Ramalho, Paulo Cândido",Heinar Gonçalves,2025,403,pt,"Ciência da Computação, Python, Programação, ciência_de_dados",,brasilapi,2026-06-17T17:13:13
-9788551012239,Katabasis,R. F. Kuang,Harper Voyager,2025,560,eng,"form:novel, genre:fantasy",https://covers.openlibrary.org/b/id/15117021-M.jpg,openlibrary,2026-06-17T17:13:16
-9786555985337,パラサイト・イヴ,Hideaki Sena,Darkside Books,1998,320,por,"Fiction, horror, Fiction, medical, Kidneys, Transplantation, Fiction",https://covers.openlibrary.org/b/id/4976272-M.jpg,openlibrary,2026-06-17T17:13:32
+9788551012239,Katábasis,"R.F. Kuang, Marina Vargas",Intrínseca,2025,480,pt,"Literatura americana, inferno, Literatura, magia, Fantasia",,brasilapi,2026-06-17T17:45:03
+9786555985337,Parasite Eve,"Hideaki Sena, Ayumi Anraku",DARKSIDE ENTRETENIMENTO LTDA ME,2025,320,pt,"Outras literaturas; literaturas de outros idiomas, ficção-japonesa, terror, Ficção-Científica",,brasilapi,2026-06-17T17:45:03
+9788547001445,A CAMA DE PROCUSTO,"NASSIM NICHOLAS TALEB, Renato Marques",Objetiva,2022,160,pt,"Literatura, Literatura",,brasilapi,2026-06-17T17:16:54
+9788547001261,A lógica do cisne negro,"Nassim Nicholas Taleb, Renato Marques de Oliveira",Objetiva,2021,528,pt,"Sociologia e antropologia, Psicologia, Sociologia",,brasilapi,2026-06-17T17:45:04
+9788547001087,ANTIFRÁGIL,"Nassim Nicholas Taleb, Renato Marques",Objetiva,2020,616,pt,"Psicologia, Complexidade, incerteza, Liderança",,brasilapi,2026-06-17T17:17:13
+9788547000967,Iludidos pelo acaso: a influência da sorte nos mercados e na vida,"Nassim Nicholas Taleb, Sérgio Moraes Rego",Objetiva,2019,328,pt,"Economia, ECONOMIA, acaso, sorte, mercado",,brasilapi,2026-06-17T17:45:04
+9788532530165,Quadribol através dos séculos,,Editora Rocco,None,,pt,,,brasilapi,2026-06-17T17:17:56
+9788532530158,"Os contos de beedle, o bardo",,Editora Rocco,None,,pt,,,brasilapi,2026-06-17T17:45:05
+9788532530172,Animais fantásticos e onde habitam,,Editora Rocco,None,,pt,,,brasilapi,2026-06-17T17:45:05
+9788576573111,Nós,,Editora Aleph,None,0,pt,,,brasilapi,2026-06-17T17:45:06
+9788594541758,Alice no País das Maravilhas: classic edition,Lewis Carroll,Darkside Books,None,,pt,Literatura infantil,,brasilapi,2026-06-17T17:45:06
+9786555980868,Alice através do espelho,"Lewis Carroll, Marcia Heloisa, John Tenniel",DARKSIDE ENTRETENIMENTO LTDA ME,2021,192,pt,"Literatura inglesa (inclui literatura do Canadá), Alice, Fantasia, ficção-inglesa, Ficção-fantástica",,brasilapi,2026-06-17T17:18:56
+9786555981346,Porco de Raça,Bruno Ribeiro,DARKSIDE ENTRETENIMENTO LTDA ME,2021,192,pt,"Literatura brasileira, horror",,brasilapi,2026-06-17T17:45:07
+9788594540973,Seres mágicos e histórias sombrias,,Darkside Books,None,,pt,Coletânea/Miscelânea,,brasilapi,2026-06-17T17:45:07
+9786555980134,O Jardim Secreto,"Frances Hodgson Burnett, Débora Isidoro, Jéssica Groke",DARKSIDE ENTRETENIMENTO LTDA ME,None,,pt,"Literatura inglesa (inclui literatura do Canadá), Literatura, inglesa, infantil",,brasilapi,2026-06-17T17:45:08
+9788564855526,Harda,Cido Rossi,Livrus,2014,292,pt-BR,Juvenile Fiction,http://books.google.com/books/content?id=T2CDAwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api,googlebooks,2026-06-17T17:19:23
+9786555981889,Saboroso cadáver,"Agustina Bazterrica, Ayelén Medail",DARKSIDE ENTRETENIMENTO LTDA ME,2022,192,pt,"Literatura espanhola, ficção-argentina, Literatura, canibalismo, horror",,brasilapi,2026-06-17T17:45:37
+9786555980325,O Mágico de Oz: First Edition,"L. Frank Baum, Marcia Heloisa, William Wallace Denslow",DARKSIDE ENTRETENIMENTO LTDA ME,None,,pt,"Literatura infanto-juvenil, Infantojuvenil",,brasilapi,2026-06-17T17:20:01
+9786555981742,Ring Shout: grito de liberdade,"P. Djèlí Clark, Bruno Ribeiro",DARKSIDE ENTRETENIMENTO LTDA ME,2022,144,pt,"Racismo, racismo, kkk, organizações, cinema",,brasilapi,2026-06-17T17:20:26
+9788594541574,A pequena sereia e o reino das ilusões,Louise O'Neill,Darkside Books,None,,pt,Outras literaturas; literaturas de outros idiomas,,brasilapi,2026-06-17T17:45:37
+9786555980998,Coração das trevas,"Joseph Conrad, Paulo Raviere, Braziliano Braza, Carlos da Silva Jr.",DARKSIDE ENTRETENIMENTO LTDA ME,2021,176,pt,"Literatura inglesa (inclui literatura do Canadá), ficção-inglesa, COLONIALISMO, África, Literatura",,brasilapi,2026-06-17T17:45:38
+9786555980950,Butcher Boy,"Patrick McCabe, Laura Zúñiga",DARKSIDE ENTRETENIMENTO LTDA ME,2021,208,pt,"Literatura inglesa (inclui literatura do Canadá), Ficção, irlandesa, romance",,brasilapi,2026-06-17T17:20:58
+9788594540799,"H.P. Lovecraft: medo clássico, cosmic edition",H.P. Lovecraft,Darkside Books,None,,pt,Literatura americana,,brasilapi,2026-06-17T17:45:38
+9786555981407,H.P. Lovecraft - Medo Clássico v. 2,"Howard Phillips Lovecraft, Ramon Mapa, Virgil Finley",DARKSIDE ENTRETENIMENTO LTDA ME,2021,400,pt,"Literatura americana, terror, Literatura, Ficção",,brasilapi,2026-06-17T17:45:39
+9788594541697,Medo imortal,"Machado de Assis, Júlia Lopes de Almeida, João do Rio",Darkside Books,None,,pt,Literatura brasileira,,brasilapi,2026-06-17T17:45:39
+9786555982268,Mefisto,"Klaus Mann, Claudia Abeling, Ramon Rodrigues, Paulo Raviere",DARKSIDE ENTRETENIMENTO LTDA ME,2022,352,pt,"Literatura alemã (inclui todos os países de língua alemã), Ficção-alemã, nazismo",,brasilapi,2026-06-17T17:21:24
+9788546902712,As crônicas de Nárnia,,Editora WMF Martins Fontes,None,0,pt,,,brasilapi,2026-06-17T17:45:40
+9788532531025,Harry Potter e o prisioneiro de Azkaban,,Editora Rocco,None,,pt,,,brasilapi,2026-06-17T17:45:40
+9788532531544,Harry Potter e o cálice de fogo,,Rocco,None,,pt,,,brasilapi,2026-06-17T17:45:41
+9786555322569,Harry Potter e a Ordem da Fênix - Ilustrado,"J.K Rowling, Lia Wyler, Jim Kay, Neil Packer",Rocco,2022,350,pt,"Literatura infanto-juvenil, HP-Ilustrado",,brasilapi,2026-06-17T17:22:19
+9788532530271,Harry Potter e a pedra folosofal,"J.K. Rowling, Lia Wyler",Editora Rocco,None,,pt,"Literatura infanto-juvenil, Harry-Potter",,brasilapi,2026-06-17T17:45:42
+9788532530554,Harry Potter e a câmara secreta,,Editora Rocco,None,,pt,,,brasilapi,2026-06-17T17:45:42
+9788522107575,LÓGICA DE PROGRAMAÇÃO E DESIGN - TRADUÇÃO DA 5ª ED. NORTE-AMERICANA,,Cengage Learning,None,0,pt,,,brasilapi,2026-06-17T17:23:47
+9788575221525,SHELL SCRIPT PROFISSIONAL,,Novatec Editora,None,0,pt,,,brasilapi,2026-06-17T17:45:42
+9788537801161,UMA SENHORA TOMA CHÁ .... : COMO A ESTATÍSTICA REVOLUCIONOU A CIÊNCIA NO SÉCULO XX,,Zahar,None,0,pt,,,brasilapi,2026-06-17T17:45:43
+9780262035613,Deep Learning,"Ian Goodfellow, Yoshua Bengio, Aaron Courville, Francis Bach",MIT Press,2016,800,eng,"Machine learning, Apprentissage automatique, Computers and IT, Maschinelles Lernen, Deep learning (Machine learning)",https://covers.openlibrary.org/b/id/8086288-M.jpg,openlibrary,2026-06-17T17:24:04
+9780534391881,Statistics for management and economics,"Gerald Keller, Brian Warrack",Wadsworth Publishing,1988,948,eng,"Statistical methods, Management, Economics, open_syllabus_project, Economie politique",https://covers.openlibrary.org/b/id/363962-M.jpg,openlibrary,2026-06-17T17:24:08
+9788521617297,INTELIGÊNCIA ARTIFICIAL,,LTC-LIVROS TECNICOS E CIENTIFICOS EDITORA LDA,None,0,pt,,,brasilapi,2026-06-17T17:24:29
+9788550804682,Storytelling com dados: um guia sobre visualização de dados para profissionais de negócios,,Alta Books,None,0,pt,,,brasilapi,2026-06-17T17:45:43
+9786555203370,Python para data science e machine learning,"Francisco Marcelo de Barros Maciel, Amilcar de Abreu Netto",Alta Books,None,,pt,"Administração e serviços auxiliares, Python",,brasilapi,2026-06-17T17:24:41
+9788576089728,Data science para negócios: o que você precisa saber sobre dta mining e pensamento analítico de dados,,Alta Books,None,0,pt,,,brasilapi,2026-06-17T17:45:44
+9788575228050,Problemas clássicos de ciência da computação com Python,,Novatec Editora,None,0,pt,,,brasilapi,2026-06-17T17:45:44
+9780984782857,Cracking The Coding Interview,Gayle Laakmann McDowell,CAREERCUP,2010,504,eng,"Problems, exercises, Computer programming, Vocational guidance, Employment interviewing, Computer programmers",https://covers.openlibrary.org/b/id/7276811-M.jpg,openlibrary,2026-06-17T17:24:59
+9788550804606,Arquitetura limpa: o guia do artesão paraestrutura e design de software,,Alta Books,None,0,pt,,,brasilapi,2026-06-17T17:45:45
+9788576082675,CÓDIGO LIMPO,,Alta Books,None,0,pt,,,brasilapi,2026-06-17T17:45:45
+9786598977832,"Python Fluente, 2ª edição, volume 2 versao standard",Luciano Ramalho,Heinar Gonçalves,2025,403,pt,"Ciência da Computação, Código, Programação",,brasilapi,2026-06-17T17:25:40
+9780578973838,Ace the Data Science Interview,"Nick Singh, Kevin Huo",Ace the Data Science Interview,2021,301,eng,,https://covers.openlibrary.org/b/id/11942032-M.jpg,openlibrary,2026-06-17T17:25:45
+9786586057102,Projetos de ciência de dados com Python,"Stephen Klosterman, Rubens Prates",Ana Carolina Prates,None,,pt,"Ciência da Computação, ciência, de, dados, Python",,brasilapi,2026-06-17T17:45:45
+9781617296864,"Deep Learning with Python, Second Edition",François Chollet,Manning Publications Co. LLC,2021,400,eng,,https://covers.openlibrary.org/b/id/15225742-M.jpg,openlibrary,2026-06-17T17:26:27
+9788575229316,Entendendo Estruturas de Dados,"Marcello La Rocca, Rubens Prates, Aldir Coelho",Novatec Editora,2025,304,pt,"Tecnologia (ciências aplicadas), dados",,brasilapi,2026-06-17T17:45:46
+9781491963043,Applied Text Analysis with Python,"Benjamin Bengfort, Rebecca Bilbro, Tony Ojeda",O’Reilly Media,2018,332,eng,"Natural language processing (Computer science), Python (Computer program language), Machine learning, Python (computer program language), Natural language processing (computer science)",https://covers.openlibrary.org/b/id/8510836-M.jpg,openlibrary,2026-06-17T17:26:35
+9788576088028,Lógica para leigos,,Alta Books,None,0,pt,,,brasilapi,2026-06-17T17:35:39
+9786555522631,Para ensinar e aprender xadrez,Adriano Caldera,Principis ,2021,192,pt,"Literatura infantil, XADREZ, princípios, Jogadas",,brasilapi,2026-06-17T17:36:15
+9788569032601,Tetris,Box Brown,Editora Mino,None,,pt,Cartoons; caricaturas e quadrinhos,,brasilapi,2026-06-17T17:45:46
+9788555193347,Engenharia de Software para Ciência de Dados,"Marcos Kalinowski, Tatiana Escovedo, Hugo Villamizar, Hélio Lopes, Vivian Matsui",AOVS SISTEMAS DE INFORMATICA LTDA.,2023,496,pt,"Ciência da Computação, Machine, Learning, Estatísticas, dados",,brasilapi,2026-06-17T17:36:34
+9788595082311,O livro de ouro da mitologia: história de deuses e heróis,,HarperCollins Brasil,None,0,pt,,,brasilapi,2026-06-17T17:36:40
+9780393866865,Four Battlegrounds,Paul Scharre,"Norton & Company Limited, W. W.",2023,,eng,,https://covers.openlibrary.org/b/id/13161914-M.jpg,openlibrary,2026-06-17T17:36:53
+9788592795788,O céu de pedra,,Editora Morro Branco ,None,0,pt,,,brasilapi,2026-06-17T17:44:38
+9788592795238,A quinta estação,,Editora Morro Branco ,None,0,pt,,,brasilapi,2026-06-17T17:44:38
+9788575597309,Como ser anticapitalista no século XXI?,,Boitempo,None,0,pt,,,brasilapi,2026-06-17T17:44:39
+9788535906097,OLHAI OS LIRIOS DO CAMPO,,Companhia das Letras,None,0,pt,,,brasilapi,2026-06-17T17:44:39
+9788501028723,O amor nos tempos do cólera,Gabriel García Márquez,Editora Record,1986,432,pt,"Literatura, solidão, Cólera, Chile, colombia",,brasilapi,2026-06-17T17:44:40
