@@ -233,7 +233,7 @@ def _capa_ol_titulo_autor(titulo: str, autores: str) -> str:
             )
             if r.status_code == 200:
                 return f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg"
-    except requests.RequestException:
+    except (requests.RequestException, ValueError):
         pass
     return ""
 

@@ -497,3 +497,15 @@ def test_capa_ol_titulo_autor_connection_error(mocker):
     from catalog.metadata.api import _capa_ol_titulo_autor
     mocker.patch("requests.get", side_effect=requests.ConnectionError)
     assert _capa_ol_titulo_autor("Qualquer Livro", "Qualquer Autor") == ""
+
+
+def test_capa_ol_titulo_autor_cover_i_head_nao_200(mocker):
+    """cover_i encontrado mas HEAD retorna não-200 → continua para próximo doc e retorna ''."""
+    from catalog.metadata.api import _capa_ol_titulo_autor
+    resp = mocker.Mock()
+    resp.status_code = 200
+    resp.json.return_value = {"docs": [{"cover_i": 11111}, {"cover_i": 22222}]}
+    resp.raise_for_status = mocker.Mock()
+    mocker.patch("requests.get", return_value=resp)
+    mocker.patch("requests.head", return_value=_mock_head(mocker, status=404))
+    assert _capa_ol_titulo_autor("Livro Raro", "Autor") == ""
