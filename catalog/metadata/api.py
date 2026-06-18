@@ -159,11 +159,21 @@ def limpar_cache_capa(isbn: str) -> None:
         _salvar_cache()
 
 
+_capas_manuais: dict | None = None
+
+
+def _get_capas_manuais() -> dict:
+    global _capas_manuais
+    if _capas_manuais is None:
+        try:
+            _capas_manuais = json.loads(Path(CAPAS_MANUAIS_FILE).read_text(encoding="utf-8"))
+        except (FileNotFoundError, json.JSONDecodeError):
+            _capas_manuais = {}
+    return _capas_manuais
+
+
 def _carregar_capas_manuais() -> dict:
-    try:
-        return json.loads(Path(CAPAS_MANUAIS_FILE).read_text(encoding="utf-8"))
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
+    return _get_capas_manuais()
 
 
 def verificar_capa(url: str) -> bool:
@@ -185,7 +195,8 @@ def buscar_capa(isbn: str, titulo: str = "", autores: str = "") -> str:
     if cached:                          # "" ou None → retenta; URL real → retorna
         return cached
 
-    # Manual override — highest priority after cache
+    # Override manual — verificado após cache, antes de qualquer chamada de rede.
+    # "" em capas_manuais.json suprime a busca na rede permanentemente para esse ISBN.
     manuais = _carregar_capas_manuais()
     if isbn in manuais:
         url = manuais[isbn]
