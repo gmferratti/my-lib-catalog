@@ -264,7 +264,7 @@ def _capa_duckduckgo(isbn: str, titulo: str = "", autores: str = "") -> str:
             try:
                 head = requests.head(img_url, timeout=5, allow_redirects=True)
                 ct = head.headers.get("Content-Type", "")
-                cl = int(head.headers.get("Content-Length", 0))
+                cl = int(head.headers.get("Content-Length", 10_000))
                 if head.status_code == 200 and "image" in ct and cl > 5_000:
                     return img_url
             except requests.RequestException:

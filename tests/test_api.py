@@ -595,3 +595,28 @@ def test_capa_duckduckgo_connection_error(mocker):
     from catalog.metadata.api import _capa_duckduckgo
     mocker.patch("requests.get", side_effect=requests.ConnectionError)
     assert _capa_duckduckgo("9786555322569", "Livro", "Autor") == ""
+
+
+def test_capa_duckduckgo_aceita_sem_content_length(mocker):
+    """CDNs com chunked transfer não enviam Content-Length; deve aceitar a imagem."""
+    from catalog.metadata.api import _capa_duckduckgo
+
+    vqd_resp = mocker.Mock()
+    vqd_resp.status_code = 200
+    vqd_resp.text = 'vqd="4-xyz"'
+    vqd_resp.raise_for_status = mocker.Mock()
+
+    images_resp = mocker.Mock()
+    images_resp.status_code = 200
+    images_resp.json.return_value = {"results": [{"image": "https://cdn.exemplo.com/capa.jpg"}]}
+    images_resp.raise_for_status = mocker.Mock()
+
+    head_resp = mocker.Mock()
+    head_resp.status_code = 200
+    head_resp.headers = {"Content-Type": "image/jpeg"}  # sem Content-Length
+
+    mocker.patch("requests.get", side_effect=[vqd_resp, images_resp])
+    mocker.patch("requests.head", return_value=head_resp)
+
+    url = _capa_duckduckgo("9786555322569", "Harry Potter", "J.K. Rowling")
+    assert url == "https://cdn.exemplo.com/capa.jpg"
