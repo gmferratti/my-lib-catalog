@@ -124,6 +124,8 @@ pip install -e ".[ui,dev]"   # ou: pip install requests streamlit pytest pytest-
 |---|---|---|
 | `GOOGLE_BOOKS_API_KEY` | `""` | Chave do Google Cloud (Books API). Sem ela usa cota anônima compartilhada, que esgota diariamente. |
 | `ISBNDB_API_KEY` | `""` | Chave gratuita do ISBNdb. Sem ela, `buscar_isbndb` é ignorado. |
+| `GOOGLE_CUSTOM_SEARCH_KEY` | `""` | Chave do Google Cloud (Custom Search API). Ativa o Stage 7 de busca de capas. 100 queries/dia grátis. |
+| `GOOGLE_CUSTOM_SEARCH_CX` | `""` | ID do mecanismo de busca em programmablesearchengine.google.com. Requerido junto com a KEY acima. |
 
 As chaves ficam em `.env` (já no `.gitignore`). O Makefile carrega o arquivo automaticamente via `-include .env`.
 

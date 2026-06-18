@@ -23,4 +23,4 @@ ISBNDB_API_KEY = os.environ.get("ISBNDB_API_KEY", "")
 # Criar em console.cloud.google.com → Custom Search API.
 # GOOGLE_CUSTOM_SEARCH_CX: ID do mecanismo de busca em programmablesearchengine.google.com
 GOOGLE_CUSTOM_SEARCH_KEY = os.environ.get("GOOGLE_CUSTOM_SEARCH_KEY", "")
-GOOGLE_CUSTOM_SEARCH_CX  = os.environ.get("GOOGLE_CUSTOM_SEARCH_CX", "")
+GOOGLE_CUSTOM_SEARCH_CX = os.environ.get("GOOGLE_CUSTOM_SEARCH_CX", "")
