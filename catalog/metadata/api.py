@@ -187,6 +187,8 @@ def buscar_capa(isbn: str, titulo: str = "", autores: str = "") -> str:
 
 def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
     # Estágio 1 — Open Library por ISBN (Large depois Medium)
+    # ?default=false faz o OL retornar 404 em vez de redirecionar para placeholder;
+    # por isso allow_redirects não é necessário aqui (o Stage 2 precisa, pois /b/id/ redireciona para arquivo real).
     for size in ("L", "M"):
         try:
             r = requests.head(
