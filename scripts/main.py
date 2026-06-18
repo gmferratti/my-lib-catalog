@@ -115,7 +115,9 @@ def _atualizar_capas(fix: bool = False) -> None:
         flag = "[cache]" if em_cache else "      "
         simbolo = "✓" if nova_url else "—"
         print(f"     [{i:>2}/{total}] {simbolo} {flag}  {titulo}", flush=True)
-        if nova_url != r.get("capa_url", ""):
+        url_changed = nova_url != r.get("capa_url", "")
+        fonte_changed = nova_url and nova_fonte != r.get("capa_fonte", "")
+        if url_changed or fonte_changed:
             r["capa_url"] = nova_url
             r["capa_fonte"] = nova_fonte
             atualizados += 1
