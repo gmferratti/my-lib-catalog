@@ -183,6 +183,10 @@ def _dialog_editar(registro: dict) -> None:
     else:
         st.markdown(f"**ISBN:** `{isbn}` &nbsp;·&nbsp; sem capa cadastrada",
                     unsafe_allow_html=True)
+        capa_fonte_val = registro.get("capa_fonte", "")
+        if capa_fonte_val and capa_fonte_val != "legado":
+            capa_fonte_label = CAPA_FONTE_LABELS.get(capa_fonte_val, capa_fonte_val)
+            st.markdown(f"**Fonte da capa:** {capa_fonte_label}")
 
     st.divider()
 
