@@ -249,8 +249,9 @@ def test_buscar_capa_ol_happy_path(mocker):
     _reset_cache(mocker)
     mocker.patch("requests.head", return_value=_mock_head(mocker, status=200))
     from catalog.metadata.api import buscar_capa
-    url = buscar_capa(ISBN)
+    url, fonte = buscar_capa(ISBN)
     assert url == f"https://covers.openlibrary.org/b/isbn/{ISBN}-L.jpg"
+    assert fonte == "openlibrary_isbn"
 
 
 def _mock_get_sem_cover(mocker):
@@ -285,14 +286,14 @@ def test_buscar_capa_ol_cover_id_sucesso(mocker):
     ol_search_resp.json.return_value = {"docs": [{"cover_i": 99999}]}
     ol_search_resp.raise_for_status = mocker.Mock()
 
-    # OL-L 404, OL-M 404, cover_i HEAD 200
     mocker.patch("requests.head", side_effect=[ol_isbn_resp, ol_isbn_resp, ol_id_head])
     mocker.patch("requests.get", return_value=ol_search_resp)
 
     from catalog.metadata.api import buscar_capa
-    url = buscar_capa(ISBN)
+    url, fonte = buscar_capa(ISBN)
     assert "covers.openlibrary.org/b/id/99999" in url
     assert url.endswith("-L.jpg")
+    assert fonte == "openlibrary_cover_i"
 
 
 def test_buscar_capa_ol_cover_id_usa_allow_redirects(mocker):
@@ -315,17 +316,16 @@ def test_buscar_capa_ol_cover_id_usa_allow_redirects(mocker):
     ol_search_resp.json.return_value = {"docs": [{"cover_i": 77777}]}
     ol_search_resp.raise_for_status = mocker.Mock()
 
-    # OL-L 404, OL-M 404, cover_i HEAD 200
     mock_head = mocker.patch(
         "requests.head", side_effect=[ol_isbn_resp, ol_isbn_resp, ol_id_head]
     )
     mocker.patch("requests.get", return_value=ol_search_resp)
 
     from catalog.metadata.api import buscar_capa
-    url = buscar_capa(ISBN)
+    url, fonte = buscar_capa(ISBN)
     assert "covers.openlibrary.org/b/id/77777" in url
+    assert fonte == "openlibrary_cover_i"
 
-    # Verify the Stage 2 HEAD call includes allow_redirects=True
     cover_i_call = mock_head.call_args_list[2]
     assert cover_i_call.kwargs.get("allow_redirects") is True, (
         "Stage 2 HEAD request must pass allow_redirects=True to follow OL 302 redirects"
@@ -352,9 +352,10 @@ def test_buscar_capa_ol_404_fallback_gb(mocker):
     mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), gb_resp])
 
     from catalog.metadata.api import buscar_capa
-    url = buscar_capa(ISBN)
+    url, fonte = buscar_capa(ISBN)
     assert "books.google.com" in url
     assert "vol123" in url
+    assert fonte == "googlebooks_isbn"
 
 
 def test_buscar_capa_sem_resultado(mocker):
@@ -367,7 +368,9 @@ def test_buscar_capa_sem_resultado(mocker):
     # Stage 6 (DDG) recebe um stub sem vqd → retorna "" sem disparar mais GETs
     mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), gb_no_results, _mock_ddg_sem_vqd(mocker)])
     from catalog.metadata.api import buscar_capa
-    assert buscar_capa(ISBN) == ""
+    url, fonte = buscar_capa(ISBN)
+    assert url == ""
+    assert fonte == ""
 
 
 def test_buscar_capa_gb_placeholder_rejeitado(mocker):
@@ -390,7 +393,9 @@ def test_buscar_capa_gb_placeholder_rejeitado(mocker):
     mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), gb_resp, _mock_ddg_sem_vqd(mocker)])
 
     from catalog.metadata.api import buscar_capa
-    assert buscar_capa(ISBN) == ""
+    url, fonte = buscar_capa(ISBN)
+    assert url == ""
+    assert fonte == ""
 
 
 def test_buscar_capa_erro_de_rede_nao_lanca(mocker):
@@ -398,7 +403,9 @@ def test_buscar_capa_erro_de_rede_nao_lanca(mocker):
     mocker.patch("requests.head", side_effect=requests.ConnectionError)
     mocker.patch("requests.get", side_effect=requests.ConnectionError)
     from catalog.metadata.api import buscar_capa
-    assert buscar_capa(ISBN) == ""
+    url, fonte = buscar_capa(ISBN)
+    assert url == ""
+    assert fonte == ""
 
 
 def test_buscar_capa_miss_nao_cacheia(mocker):
@@ -407,7 +414,9 @@ def test_buscar_capa_miss_nao_cacheia(mocker):
     # Stage 6 (DDG) recebe um stub sem vqd → retorna "" sem disparar mais GETs
     mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), _mock_get_sem_cover(mocker), _mock_ddg_sem_vqd(mocker)])
     from catalog.metadata.api import buscar_capa
-    assert buscar_capa(ISBN) == ""
+    url, fonte = buscar_capa(ISBN)
+    assert url == ""
+    assert fonte == ""
     api_module._salvar_cache.assert_not_called()
 
 
@@ -432,20 +441,22 @@ def test_buscar_capa_stage4_titulo_autor(mocker):
     mocker.patch("requests.get", side_effect=[ol_search_vazio, gb_isbn_sem_resultados, gb_titulo_resp])
 
     from catalog.metadata.api import buscar_capa
-    url = buscar_capa(ISBN, titulo="Livro Teste", autores="Autor Um")
+    url, fonte = buscar_capa(ISBN, titulo="Livro Teste", autores="Autor Um")
     assert "books.google.com" in url
     assert "vol999" in url
+    assert fonte == "googlebooks_titulo"
 
 
 def test_buscar_capa_retorna_cache_sem_requisicao(mocker):
-    mocker.patch.object(api_module, "_capas_cache", {ISBN: "https://cached.example.com/capa.jpg"})
+    mocker.patch.object(api_module, "_capas_cache", {ISBN: {"url": "https://cached.example.com/capa.jpg", "fonte": "legado"}})
     mocker.patch("catalog.metadata.api._salvar_cache")
     mock_head = mocker.patch("requests.head")
     mock_get = mocker.patch("requests.get")
 
     from catalog.metadata.api import buscar_capa
-    url = buscar_capa(ISBN)
+    url, fonte = buscar_capa(ISBN)
     assert url == "https://cached.example.com/capa.jpg"
+    assert fonte == "legado"
     mock_head.assert_not_called()
     mock_get.assert_not_called()
 
@@ -461,8 +472,9 @@ def test_buscar_capa_override_manual_sem_rede(mocker):
     mock_get = mocker.patch("requests.get")
 
     from catalog.metadata.api import buscar_capa
-    url = buscar_capa(ISBN)
+    url, fonte = buscar_capa(ISBN)
     assert url == "https://manual.exemplo.com/capa.jpg"
+    assert fonte == "manual"
     mock_head.assert_not_called()
     mock_get.assert_not_called()
 
@@ -482,7 +494,9 @@ def test_buscar_capa_override_vazio_suprime_rede(mocker):
     mock_get = mocker.patch("requests.get")
 
     from catalog.metadata.api import buscar_capa
-    assert buscar_capa(ISBN) == ""
+    url, fonte = buscar_capa(ISBN)
+    assert url == ""
+    assert fonte == ""
     mock_head.assert_not_called()
     mock_get.assert_not_called()
 
@@ -523,8 +537,9 @@ def test_capa_ol_titulo_autor_happy_path(mocker):
     mocker.patch("requests.get", side_effect=[ol_cover_i_vazio, gb_sem_resultado, gb_sem_resultado, ol_titulo_resp])
 
     from catalog.metadata.api import buscar_capa
-    url = buscar_capa(ISBN, titulo="Mefisto", autores="Klaus Mann")
+    url, fonte = buscar_capa(ISBN, titulo="Mefisto", autores="Klaus Mann")
     assert "covers.openlibrary.org/b/id/44444" in url
+    assert fonte == "openlibrary_titulo"
 
 
 def test_capa_ol_titulo_autor_sem_resultados(mocker):

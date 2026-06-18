@@ -194,32 +194,30 @@ def verificar_capa(url: str) -> bool:
         return False
 
 
-def buscar_capa(isbn: str, titulo: str = "", autores: str = "") -> str:
-    """Busca capa de alta resolução. Retorna URL validada ou '' se nada disponível.
+def buscar_capa(isbn: str, titulo: str = "", autores: str = "") -> tuple[str, str]:
+    """Returns (capa_url, capa_fonte). Both '' if no cover available.
 
-    Misses não são cacheados — cada chamada a make capas retenta ISBNs sem capa,
-    permitindo que melhorias na lógica ou novos dados nas APIs sejam aproveitados.
+    Misses are not cached — every call retries ISBNs without a cover,
+    so improvements in logic or new API data are picked up automatically.
     """
     cache = _get_cache()
     cached = cache.get(isbn)
-    if cached:                          # "" ou None → retenta; URL real → retorna
-        return cached
+    if cached:
+        return (cached.get("url", ""), cached.get("fonte", "legado"))
 
-    # Override manual — verificado após cache, antes de qualquer chamada de rede.
-    # "" em capas_manuais.json suprime a busca na rede permanentemente para esse ISBN.
     manuais = _carregar_capas_manuais()
     if isbn in manuais:
         url = manuais[isbn]
         if url:
-            cache[isbn] = url
+            cache[isbn] = {"url": url, "fonte": "manual"}
             _salvar_cache()
-        return url
+        return (url, "manual" if url else "")
 
-    url = _buscar_capa_rede(isbn, titulo, autores)
-    if url:                             # só persiste sucesso
-        cache[isbn] = url
+    url, capa_fonte = _buscar_capa_rede(isbn, titulo, autores)
+    if url:
+        cache[isbn] = {"url": url, "fonte": capa_fonte}
         _salvar_cache()
-    return url
+    return (url, capa_fonte)
 
 
 def _capa_ol_titulo_autor(titulo: str, autores: str) -> str:
@@ -312,7 +310,7 @@ def _capa_google_cse(isbn: str, titulo: str = "", autores: str = "") -> str:
     return ""
 
 
-def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
+def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> tuple[str, str]:
     # Estágio 1 — Open Library por ISBN (Large depois Medium)
     # ?default=false faz o OL retornar 404 em vez de redirecionar para placeholder;
     # por isso allow_redirects não é necessário aqui (o Stage 2 precisa, pois /b/id/ redireciona para arquivo real).
@@ -323,7 +321,7 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
                 timeout=5,
             )
             if r.status_code == 200:
-                return f"https://covers.openlibrary.org/b/isbn/{isbn}-{size}.jpg"
+                return (f"https://covers.openlibrary.org/b/isbn/{isbn}-{size}.jpg", "openlibrary_isbn")
         except requests.RequestException:
             pass
 
@@ -342,7 +340,7 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
                 allow_redirects=True,
             )
             if r.status_code == 200:
-                return f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg"
+                return (f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg", "openlibrary_cover_i")
     except requests.RequestException:
         pass
 
@@ -363,7 +361,7 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
                 head = requests.head(capa_url, timeout=5)
                 tamanho = int(head.headers.get("Content-Length", 10_000))
                 if tamanho > 5_000:
-                    return capa_url
+                    return (capa_url, "googlebooks_isbn")
     except requests.RequestException:
         pass
 
@@ -390,7 +388,7 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
                     head = requests.head(capa_url, timeout=5)
                     tamanho = int(head.headers.get("Content-Length", 10_000))
                     if tamanho > 5_000:
-                        return capa_url
+                        return (capa_url, "googlebooks_titulo")
         except requests.RequestException:
             pass
 
@@ -398,19 +396,19 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
     if titulo:
         url = _capa_ol_titulo_autor(titulo, autores)
         if url:
-            return url
+            return (url, "openlibrary_titulo")
 
     # Estágio 6 — DuckDuckGo image search (fallback informal; sem chave, sem dependências)
     url = _capa_duckduckgo(isbn, titulo, autores)
     if url:
-        return url
+        return (url, "duckduckgo")
 
     # Estágio 7 — Google Custom Search Images (opcional; requer GOOGLE_CUSTOM_SEARCH_KEY + CX)
     url = _capa_google_cse(isbn, titulo, autores)
     if url:
-        return url
+        return (url, "google_cse")
 
-    return ""
+    return ("", "")
 
 
 def buscar_metadados(isbn: str) -> dict:
