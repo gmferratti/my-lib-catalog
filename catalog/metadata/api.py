@@ -5,7 +5,7 @@ from pathlib import Path
 
 import requests
 
-from ..config import CAPAS_CACHE_FILE, CSV_HEADERS, GOOGLE_BOOKS_API_KEY, ISBNDB_API_KEY
+from ..config import CAPAS_CACHE_FILE, CAPAS_MANUAIS_FILE, CSV_HEADERS, GOOGLE_BOOKS_API_KEY, ISBNDB_API_KEY
 
 
 def _get_json(
@@ -159,6 +159,13 @@ def limpar_cache_capa(isbn: str) -> None:
         _salvar_cache()
 
 
+def _carregar_capas_manuais() -> dict:
+    try:
+        return json.loads(Path(CAPAS_MANUAIS_FILE).read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
 def verificar_capa(url: str) -> bool:
     """Retorna True se a URL responde HTTP 200."""
     try:
@@ -177,6 +184,15 @@ def buscar_capa(isbn: str, titulo: str = "", autores: str = "") -> str:
     cached = cache.get(isbn)
     if cached:                          # "" ou None → retenta; URL real → retorna
         return cached
+
+    # Manual override — highest priority after cache
+    manuais = _carregar_capas_manuais()
+    if isbn in manuais:
+        url = manuais[isbn]
+        if url:
+            cache[isbn] = url
+            _salvar_cache()
+        return url
 
     url = _buscar_capa_rede(isbn, titulo, autores)
     if url:                             # só persiste sucesso

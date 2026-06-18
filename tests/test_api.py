@@ -430,3 +430,26 @@ def test_buscar_capa_retorna_cache_sem_requisicao(mocker):
     assert url == "https://cached.example.com/capa.jpg"
     mock_head.assert_not_called()
     mock_get.assert_not_called()
+
+
+def test_buscar_capa_override_manual_sem_rede(mocker):
+    _reset_cache(mocker)
+    mocker.patch.object(
+        api_module,
+        "_carregar_capas_manuais",
+        return_value={ISBN: "https://manual.exemplo.com/capa.jpg"},
+    )
+    mock_head = mocker.patch("requests.head")
+    mock_get = mocker.patch("requests.get")
+
+    from catalog.metadata.api import buscar_capa
+    url = buscar_capa(ISBN)
+    assert url == "https://manual.exemplo.com/capa.jpg"
+    mock_head.assert_not_called()
+    mock_get.assert_not_called()
+
+
+def test_carregar_capas_manuais_arquivo_ausente(mocker):
+    mocker.patch.object(api_module, "CAPAS_MANUAIS_FILE", "/tmp/nao_existe_jamais_xyz.json")
+    from catalog.metadata.api import _carregar_capas_manuais
+    assert _carregar_capas_manuais() == {}
