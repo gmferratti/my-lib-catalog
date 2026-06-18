@@ -453,3 +453,47 @@ def test_carregar_capas_manuais_arquivo_ausente(mocker):
     mocker.patch.object(api_module, "CAPAS_MANUAIS_FILE", "/tmp/nao_existe_jamais_xyz.json")
     from catalog.metadata.api import _carregar_capas_manuais
     assert _carregar_capas_manuais() == {}
+
+
+# ──────────────────────────────────────────────
+# _capa_ol_titulo_autor (Stage 5)
+# ──────────────────────────────────────────────
+
+def test_capa_ol_titulo_autor_happy_path(mocker):
+    _reset_cache(mocker)
+    ol_404 = _mock_head(mocker, status=404)
+    ol_titulo_head = _mock_head(mocker, status=200)
+    # Stage 1: OL-L 404, OL-M 404; Stage 2: sem docs → sem HEAD; Stage 5: HEAD 200
+    mocker.patch("requests.head", side_effect=[ol_404, ol_404, ol_titulo_head])
+
+    ol_cover_i_vazio = _mock_get_sem_cover(mocker)
+    gb_sem_resultado = mocker.Mock()
+    gb_sem_resultado.status_code = 200
+    gb_sem_resultado.json.return_value = {"totalItems": 0}
+    gb_sem_resultado.raise_for_status = mocker.Mock()
+    ol_titulo_resp = mocker.Mock()
+    ol_titulo_resp.status_code = 200
+    ol_titulo_resp.json.return_value = {"docs": [{"cover_i": 44444}]}
+    ol_titulo_resp.raise_for_status = mocker.Mock()
+    # GET order: OL cover_i (empty), GB ISBN (0), GB título (0), OL título+autor (hit)
+    mocker.patch("requests.get", side_effect=[ol_cover_i_vazio, gb_sem_resultado, gb_sem_resultado, ol_titulo_resp])
+
+    from catalog.metadata.api import buscar_capa
+    url = buscar_capa(ISBN, titulo="Mefisto", autores="Klaus Mann")
+    assert "covers.openlibrary.org/b/id/44444" in url
+
+
+def test_capa_ol_titulo_autor_sem_resultados(mocker):
+    from catalog.metadata.api import _capa_ol_titulo_autor
+    resp = mocker.Mock()
+    resp.status_code = 200
+    resp.json.return_value = {"docs": []}
+    resp.raise_for_status = mocker.Mock()
+    mocker.patch("requests.get", return_value=resp)
+    assert _capa_ol_titulo_autor("Livro Inexistente Xyz", "") == ""
+
+
+def test_capa_ol_titulo_autor_connection_error(mocker):
+    from catalog.metadata.api import _capa_ol_titulo_autor
+    mocker.patch("requests.get", side_effect=requests.ConnectionError)
+    assert _capa_ol_titulo_autor("Qualquer Livro", "Qualquer Autor") == ""

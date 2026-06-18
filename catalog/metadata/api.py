@@ -212,6 +212,32 @@ def buscar_capa(isbn: str, titulo: str = "", autores: str = "") -> str:
     return url
 
 
+def _capa_ol_titulo_autor(titulo: str, autores: str) -> str:
+    autor_principal = (autores or "").split(",")[0].strip()
+    params = f"title={requests.utils.quote(titulo)}"
+    if autor_principal:
+        params += f"&author={requests.utils.quote(autor_principal)}"
+    try:
+        data = _get_json(
+            f"https://openlibrary.org/search.json?{params}&fields=cover_i&limit=5",
+            tentativas=1, timeout=5,
+        )
+        for doc in (data or {}).get("docs", []):
+            cover_i = doc.get("cover_i")
+            if not cover_i:
+                continue
+            r = requests.head(
+                f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg",
+                timeout=5,
+                allow_redirects=True,
+            )
+            if r.status_code == 200:
+                return f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg"
+    except requests.RequestException:
+        pass
+    return ""
+
+
 def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
     # Estágio 1 — Open Library por ISBN (Large depois Medium)
     # ?default=false faz o OL retornar 404 em vez de redirecionar para placeholder;
@@ -293,6 +319,12 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
                         return capa_url
         except requests.RequestException:
             pass
+
+    # Estágio 5 — Open Library por título+autor (edições sem indexação por ISBN)
+    if titulo:
+        url = _capa_ol_titulo_autor(titulo, autores)
+        if url:
+            return url
 
     return ""
 
