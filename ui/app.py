@@ -40,6 +40,28 @@ FONTE_LABELS = {
     "manual":         "Manual",
 }
 
+CAPA_FONTE_CORES = {
+    "openlibrary_isbn":    "#1b5e20",
+    "openlibrary_cover_i": "#2e7d32",
+    "openlibrary_titulo":  "#388e3c",
+    "googlebooks_isbn":    "#0d47a1",
+    "googlebooks_titulo":  "#1565c0",
+    "duckduckgo":          "#e65100",
+    "google_cse":          "#4a148c",
+    "manual":              "#37474f",
+}
+
+CAPA_FONTE_LABELS = {
+    "openlibrary_isbn":    "OL ISBN",
+    "openlibrary_cover_i": "OL Cover ID",
+    "openlibrary_titulo":  "OL Título",
+    "googlebooks_isbn":    "GB ISBN",
+    "googlebooks_titulo":  "GB Título",
+    "duckduckgo":          "DuckDuckGo",
+    "google_cse":          "Google CSE",
+    "manual":              "Manual",
+}
+
 ESTILOS = {
     "autor":   "Por autor (A → Z)",
     "assunto": "Por assunto / gênero",
@@ -118,6 +140,17 @@ def _badge(fonte: str) -> str:
     )
 
 
+def _badge_capa(capa_fonte: str) -> str:
+    if not capa_fonte or capa_fonte == "legado":
+        return ""
+    cor = CAPA_FONTE_CORES.get(capa_fonte, "#78909c")
+    label = CAPA_FONTE_LABELS.get(capa_fonte, capa_fonte)
+    return (
+        f'<span style="background:{cor};color:white;padding:2px 8px;'
+        f'border-radius:4px;font-size:0.75rem">{label}</span>'
+    )
+
+
 # ── Acervo: edição ────────────────────────────────────────────────────────────
 
 def _salvar_edicao(isbn: str, campos: dict) -> None:
@@ -142,6 +175,10 @@ def _dialog_editar(registro: dict) -> None:
         with col_info:
             st.markdown(f"**ISBN:** `{isbn}`")
             st.markdown(f"**Fonte original:** {registro.get('fonte', '—')}")
+            capa_fonte_label = CAPA_FONTE_LABELS.get(
+                registro.get("capa_fonte", ""), registro.get("capa_fonte") or "—"
+            )
+            st.markdown(f"**Fonte da capa:** {capa_fonte_label}")
             st.markdown(f"**Cadastrado em:** {registro.get('data_cadastro', '—')}")
     else:
         st.markdown(f"**ISBN:** `{isbn}` &nbsp;·&nbsp; sem capa cadastrada",
@@ -281,6 +318,9 @@ def _render_acervo() -> None:
                     if r.get("ano"):
                         st.caption(f"📅 {r['ano']}")
                     st.markdown(_badge(r.get("fonte", "")), unsafe_allow_html=True)
+                    badge_capa = _badge_capa(r.get("capa_fonte", ""))
+                    if badge_capa:
+                        st.markdown(badge_capa, unsafe_allow_html=True)
                     if modo_edicao:
                         if st.button("✏️ Editar", key=f"edit_{r['isbn']}",
                                      use_container_width=True):
@@ -292,7 +332,7 @@ def _render_acervo() -> None:
                     for r in filtrados]
             st.dataframe(rows, width="stretch",
                          column_order=["isbn", "titulo", "autores", "editora", "ano",
-                                       "paginas", "idioma", "assuntos", "fonte",
+                                       "paginas", "idioma", "assuntos", "capa_fonte", "fonte",
                                        "data_cadastro", "capa_url"])
         else:
             st.write("Sem registros.")
@@ -498,17 +538,49 @@ def _render_estantes() -> None:
             st.markdown(f"- {autores} — **{titulo}**" if autores else f"- **{titulo}**")
 
 
+# ── Tab: Sobre ────────────────────────────────────────────────────────────────
+
+def _render_sobre() -> None:
+    st.header("Sobre o My Lib Catalog")
+
+    col, _ = st.columns([2, 1])
+    with col:
+        st.markdown("""
+My Lib Catalog nasceu de uma necessidade muito simples: Gustavo Ferratti, um apaixonado
+por livros que mora em Araraquara, interior de São Paulo, precisava de uma forma de
+organizar e consultar o próprio acervo pessoal de livros que crescia rapidamente.
+
+O projeto foi construído inteiramente por ele (AI-assisted) com muito amor e carinho,
+de forma gratuita, de bookworm para bookworm. Nada de algoritmos de recomendação, nada
+de dados sendo vendidos. Só você, seus livros, uma interface que respeita o seu tempo
+e o bom e velho open source.
+
+**Como funciona:** você escaneia o código de barras do livro com um leitor de código de
+barras pela CLI (rodar comando `make run` para entrar no loop principal); o sistema busca
+os metadados automaticamente a partir do ISBN em múltiplas fontes (Open Library,
+Google Books, BrasilAPI, ISBNdb) e organiza tudo para você consultar por autor, ano,
+idioma, etc. Se algo não vier certo, há a possibilidade de ajuste manual.
+
+**Organização de estantes:** a funcionalidade de organização física das estantes está em
+desenvolvimento. Em breve você poderá distribuir seus livros pelas prateleiras de
+forma otimizada.
+""")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> None:
     st.title("📚 Minha Biblioteca")
-    tab_acervo, tab_estantes = st.tabs(["📚 Acervo", "🗂️ Estantes"])
+    tab_acervo, tab_estantes, tab_sobre = st.tabs(["📚 Acervo", "🗂️ Estantes", "📖 Sobre"])
 
     with tab_acervo:
         _render_acervo()
 
     with tab_estantes:
         _render_estantes()
+
+    with tab_sobre:
+        _render_sobre()
 
 
 if __name__ == "__main__":
