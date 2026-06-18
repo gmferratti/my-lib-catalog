@@ -95,6 +95,7 @@ def _atualizar_capas(fix: bool = False) -> None:
                 if not verificar_capa(r["capa_url"]):
                     print(f"     ✗  {r.get('titulo') or r['isbn']}", flush=True)
                     r["capa_url"] = ""
+                    r["capa_fonte"] = ""
                     limpar_cache_capa(r["isbn"])
                     quebradas += 1
             if quebradas:
@@ -110,12 +111,13 @@ def _atualizar_capas(fix: bool = False) -> None:
         isbn = r["isbn"]
         titulo = r.get("titulo") or isbn
         em_cache = isbn in _get_cache()
-        nova_url = buscar_capa(isbn, r.get("titulo", ""), r.get("autores", ""))
+        nova_url, nova_fonte = buscar_capa(isbn, r.get("titulo", ""), r.get("autores", ""))
         flag = "[cache]" if em_cache else "      "
         simbolo = "✓" if nova_url else "—"
         print(f"     [{i:>2}/{total}] {simbolo} {flag}  {titulo}", flush=True)
         if nova_url != r.get("capa_url", ""):
             r["capa_url"] = nova_url
+            r["capa_fonte"] = nova_fonte
             atualizados += 1
 
     if atualizados:
