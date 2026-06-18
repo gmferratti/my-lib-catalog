@@ -467,9 +467,23 @@ def test_buscar_capa_override_manual_sem_rede(mocker):
 
 
 def test_carregar_capas_manuais_arquivo_ausente(mocker):
+    mocker.patch.object(api_module, "_capas_manuais", None)  # resetar global para exercitar o branch
     mocker.patch.object(api_module, "CAPAS_MANUAIS_FILE", "/tmp/nao_existe_jamais_xyz.json")
     from catalog.metadata.api import _carregar_capas_manuais
     assert _carregar_capas_manuais() == {}
+
+
+def test_buscar_capa_override_vazio_suprime_rede(mocker):
+    """ISBN com '' em capas_manuais.json deve retornar '' sem chamar a rede."""
+    _reset_cache(mocker)
+    mocker.patch.object(api_module, "_carregar_capas_manuais", return_value={ISBN: ""})
+    mock_head = mocker.patch("requests.head")
+    mock_get = mocker.patch("requests.get")
+
+    from catalog.metadata.api import buscar_capa
+    assert buscar_capa(ISBN) == ""
+    mock_head.assert_not_called()
+    mock_get.assert_not_called()
 
 
 # ──────────────────────────────────────────────

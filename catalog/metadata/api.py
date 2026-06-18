@@ -182,9 +182,9 @@ def _carregar_capas_manuais() -> dict:
 
 
 def verificar_capa(url: str) -> bool:
-    """Retorna True se a URL responde HTTP 200."""
+    """Retorna True se a URL responde HTTP 200 (segue redirects)."""
     try:
-        return requests.head(url, timeout=5).status_code == 200
+        return requests.head(url, timeout=5, allow_redirects=True).status_code == 200
     except requests.RequestException:
         return False
 
