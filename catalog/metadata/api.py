@@ -1,4 +1,5 @@
 import json
+import re
 import time
 from datetime import datetime
 from pathlib import Path
@@ -238,6 +239,41 @@ def _capa_ol_titulo_autor(titulo: str, autores: str) -> str:
     return ""
 
 
+def _capa_duckduckgo(isbn: str, titulo: str = "", autores: str = "") -> str:
+    partes = [p for p in [isbn, titulo, (autores or "").split(",")[0].strip(), "capa livro"] if p]
+    query = " ".join(partes)
+    headers = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0"}
+    try:
+        r = requests.get(
+            f"https://duckduckgo.com/?q={requests.utils.quote(query)}&iax=images&ia=images",
+            headers=headers, timeout=10,
+        )
+        match = re.search(r'vqd="([^"]+)"', r.text)
+        if not match:
+            return ""
+        vqd = match.group(1)
+        data = _get_json(
+            f"https://duckduckgo.com/i.js?q={requests.utils.quote(query)}&o=json&vqd={vqd}",
+            tentativas=1, timeout=10,
+            headers=headers,
+        )
+        for item in (data or {}).get("results", []):
+            img_url = item.get("image", "")
+            if not img_url:
+                continue
+            try:
+                head = requests.head(img_url, timeout=5, allow_redirects=True)
+                ct = head.headers.get("Content-Type", "")
+                cl = int(head.headers.get("Content-Length", 0))
+                if head.status_code == 200 and "image" in ct and cl > 5_000:
+                    return img_url
+            except requests.RequestException:
+                continue
+    except (requests.RequestException, ValueError):
+        pass
+    return ""
+
+
 def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
     # Estágio 1 — Open Library por ISBN (Large depois Medium)
     # ?default=false faz o OL retornar 404 em vez de redirecionar para placeholder;
@@ -325,6 +361,11 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
         url = _capa_ol_titulo_autor(titulo, autores)
         if url:
             return url
+
+    # Estágio 6 — DuckDuckGo image search (fallback informal; sem chave, sem dependências)
+    url = _capa_duckduckgo(isbn, titulo, autores)
+    if url:
+        return url
 
     return ""
 

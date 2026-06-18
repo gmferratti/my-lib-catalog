@@ -260,6 +260,20 @@ def _mock_get_sem_cover(mocker):
     return resp
 
 
+def _mock_ddg_sem_vqd(mocker):
+    """Stub para o primeiro GET do DuckDuckGo (Stage 6) que não contém token vqd.
+
+    Faz Stage 6 retornar imediatamente sem disparar mais requisições.
+    Necessário nos testes que passam side_effect com lista finita para requests.get
+    e que não querem testar Stage 6.
+    """
+    resp = mocker.Mock()
+    resp.status_code = 200
+    resp.text = "sem token aqui"
+    resp.raise_for_status = mocker.Mock()
+    return resp
+
+
 def test_buscar_capa_ol_cover_id_sucesso(mocker):
     _reset_cache(mocker)
     ol_isbn_resp = _mock_head(mocker, status=404)
@@ -349,7 +363,8 @@ def test_buscar_capa_sem_resultado(mocker):
     gb_no_results.status_code = 200
     gb_no_results.json.return_value = {"totalItems": 0}
     gb_no_results.raise_for_status = mocker.Mock()
-    mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), gb_no_results])
+    # Stage 6 (DDG) recebe um stub sem vqd → retorna "" sem disparar mais GETs
+    mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), gb_no_results, _mock_ddg_sem_vqd(mocker)])
     from catalog.metadata.api import buscar_capa
     assert buscar_capa(ISBN) == ""
 
@@ -370,7 +385,8 @@ def test_buscar_capa_gb_placeholder_rejeitado(mocker):
 
     # OL-L 404, OL-M 404, GB HEAD placeholder (≤5000 bytes)
     mocker.patch("requests.head", side_effect=[ol_resp, ol_resp, gb_head])
-    mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), gb_resp])
+    # Stage 6 (DDG) recebe um stub sem vqd → retorna "" sem disparar mais GETs
+    mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), gb_resp, _mock_ddg_sem_vqd(mocker)])
 
     from catalog.metadata.api import buscar_capa
     assert buscar_capa(ISBN) == ""
@@ -387,7 +403,8 @@ def test_buscar_capa_erro_de_rede_nao_lanca(mocker):
 def test_buscar_capa_miss_nao_cacheia(mocker):
     _reset_cache(mocker)
     mocker.patch("requests.head", return_value=_mock_head(mocker, status=404))
-    mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), _mock_get_sem_cover(mocker)])
+    # Stage 6 (DDG) recebe um stub sem vqd → retorna "" sem disparar mais GETs
+    mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), _mock_get_sem_cover(mocker), _mock_ddg_sem_vqd(mocker)])
     from catalog.metadata.api import buscar_capa
     assert buscar_capa(ISBN) == ""
     api_module._salvar_cache.assert_not_called()
@@ -509,3 +526,72 @@ def test_capa_ol_titulo_autor_cover_i_head_nao_200(mocker):
     mocker.patch("requests.get", return_value=resp)
     mocker.patch("requests.head", return_value=_mock_head(mocker, status=404))
     assert _capa_ol_titulo_autor("Livro Raro", "Autor") == ""
+
+
+# ──────────────────────────────────────────────
+# _capa_duckduckgo (Stage 6)
+# ──────────────────────────────────────────────
+
+def test_capa_duckduckgo_happy_path(mocker):
+    from catalog.metadata.api import _capa_duckduckgo
+
+    vqd_resp = mocker.Mock()
+    vqd_resp.status_code = 200
+    vqd_resp.text = 'vqd="4-abc123xyz"'
+    vqd_resp.raise_for_status = mocker.Mock()
+    vqd_resp.json.return_value = {}  # não usado, mas evita AttributeError
+
+    images_resp = mocker.Mock()
+    images_resp.status_code = 200
+    images_resp.json.return_value = {
+        "results": [{"image": "https://example.com/capa.jpg"}]
+    }
+    images_resp.raise_for_status = mocker.Mock()
+
+    head_resp = _mock_head(mocker, status=200)
+    head_resp.headers = {"Content-Type": "image/jpeg", "Content-Length": "60000"}
+
+    mocker.patch("requests.get", side_effect=[vqd_resp, images_resp])
+    mocker.patch("requests.head", return_value=head_resp)
+
+    url = _capa_duckduckgo("9786555322569", "Harry Potter", "J.K. Rowling")
+    assert url == "https://example.com/capa.jpg"
+
+
+def test_capa_duckduckgo_sem_vqd(mocker):
+    from catalog.metadata.api import _capa_duckduckgo
+    resp = mocker.Mock()
+    resp.status_code = 200
+    resp.text = "sem token aqui"
+    resp.raise_for_status = mocker.Mock()
+    mocker.patch("requests.get", return_value=resp)
+    assert _capa_duckduckgo("9786555322569", "Livro", "Autor") == ""
+
+
+def test_capa_duckduckgo_rejeita_nao_imagem(mocker):
+    from catalog.metadata.api import _capa_duckduckgo
+
+    vqd_resp = mocker.Mock()
+    vqd_resp.status_code = 200
+    vqd_resp.text = 'vqd="4-xyz"'
+    vqd_resp.raise_for_status = mocker.Mock()
+
+    images_resp = mocker.Mock()
+    images_resp.status_code = 200
+    images_resp.json.return_value = {"results": [{"image": "https://bad.example.com/page"}]}
+    images_resp.raise_for_status = mocker.Mock()
+
+    head_resp = mocker.Mock()
+    head_resp.status_code = 200
+    head_resp.headers = {"Content-Type": "text/html", "Content-Length": "50000"}
+
+    mocker.patch("requests.get", side_effect=[vqd_resp, images_resp])
+    mocker.patch("requests.head", return_value=head_resp)
+
+    assert _capa_duckduckgo("9786555322569", "Livro", "Autor") == ""
+
+
+def test_capa_duckduckgo_connection_error(mocker):
+    from catalog.metadata.api import _capa_duckduckgo
+    mocker.patch("requests.get", side_effect=requests.ConnectionError)
+    assert _capa_duckduckgo("9786555322569", "Livro", "Autor") == ""
