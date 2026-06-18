@@ -210,6 +210,7 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
             r = requests.head(
                 f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg",
                 timeout=5,
+                allow_redirects=True,
             )
             if r.status_code == 200:
                 return f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg"

@@ -280,6 +280,43 @@ def test_buscar_capa_ol_cover_id_sucesso(mocker):
     assert url.endswith("-L.jpg")
 
 
+def test_buscar_capa_ol_cover_id_usa_allow_redirects(mocker):
+    """Regression: Stage 2 HEAD request must pass allow_redirects=True.
+
+    OL cover-by-id URLs sometimes return 302. Without allow_redirects=True,
+    requests.head() would NOT follow the redirect and status_code would be 302,
+    causing the cover to be silently missed. With allow_redirects=True, the
+    library follows the redirect internally and the resolved response has
+    status_code=200, so the cover URL is returned correctly.
+
+    We verify that requests.head is called with allow_redirects=True.
+    """
+    _reset_cache(mocker)
+    ol_isbn_resp = _mock_head(mocker, status=404)
+    ol_id_head = _mock_head(mocker, status=200)
+
+    ol_search_resp = mocker.Mock()
+    ol_search_resp.status_code = 200
+    ol_search_resp.json.return_value = {"docs": [{"cover_i": 77777}]}
+    ol_search_resp.raise_for_status = mocker.Mock()
+
+    # OL-L 404, OL-M 404, cover_i HEAD 200
+    mock_head = mocker.patch(
+        "requests.head", side_effect=[ol_isbn_resp, ol_isbn_resp, ol_id_head]
+    )
+    mocker.patch("requests.get", return_value=ol_search_resp)
+
+    from catalog.metadata.api import buscar_capa
+    url = buscar_capa(ISBN)
+    assert "covers.openlibrary.org/b/id/77777" in url
+
+    # Verify the Stage 2 HEAD call includes allow_redirects=True
+    cover_i_call = mock_head.call_args_list[2]
+    assert cover_i_call.kwargs.get("allow_redirects") is True, (
+        "Stage 2 HEAD request must pass allow_redirects=True to follow OL 302 redirects"
+    )
+
+
 def test_buscar_capa_ol_404_fallback_gb(mocker):
     _reset_cache(mocker)
     ol_resp = _mock_head(mocker, status=404)
