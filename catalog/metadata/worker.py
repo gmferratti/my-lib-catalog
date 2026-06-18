@@ -27,7 +27,9 @@ def worker(
 
         try:
             registro = buscar_metadados(isbn)
-            registro["capa_url"] = buscar_capa(isbn)
+            metadata_capa = registro.get("capa_url", "")
+            capa_dedicada = buscar_capa(isbn, registro.get("titulo", ""), registro.get("autores", ""))
+            registro["capa_url"] = capa_dedicada or metadata_capa
             salvar(registro)
             remover_pendente(isbn)
             if on_result is not None:

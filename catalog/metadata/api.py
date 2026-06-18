@@ -167,19 +167,25 @@ def verificar_capa(url: str) -> bool:
         return False
 
 
-def buscar_capa(isbn: str) -> str:
-    """Busca capa de alta resolução. Retorna URL validada ou '' se nada disponível."""
-    cache = _get_cache()
-    if isbn in cache:
-        return cache[isbn]
+def buscar_capa(isbn: str, titulo: str = "", autores: str = "") -> str:
+    """Busca capa de alta resolução. Retorna URL validada ou '' se nada disponível.
 
-    url = _buscar_capa_rede(isbn)
-    cache[isbn] = url
-    _salvar_cache()
+    Misses não são cacheados — cada chamada a make capas retenta ISBNs sem capa,
+    permitindo que melhorias na lógica ou novos dados nas APIs sejam aproveitados.
+    """
+    cache = _get_cache()
+    cached = cache.get(isbn)
+    if cached:                          # "" ou None → retenta; URL real → retorna
+        return cached
+
+    url = _buscar_capa_rede(isbn, titulo, autores)
+    if url:                             # só persiste sucesso
+        cache[isbn] = url
+        _salvar_cache()
     return url
 
 
-def _buscar_capa_rede(isbn: str) -> str:
+def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
     # Estágio 1 — Open Library por ISBN (Large depois Medium)
     for size in ("L", "M"):
         try:
@@ -210,28 +216,53 @@ def _buscar_capa_rede(isbn: str) -> str:
     except requests.RequestException:
         pass
 
-    # Estágio 3 — Google Books zoom=0
+    # Estágio 3 — Google Books zoom=0 por ISBN
     try:
         url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
         if GOOGLE_BOOKS_API_KEY:
             url += f"&key={GOOGLE_BOOKS_API_KEY}"
         data = _get_json(url, tentativas=1, timeout=5)
-        if not data or not data.get("totalItems"):
-            return ""
-        item = data["items"][0]
-        if not item.get("volumeInfo", {}).get("imageLinks"):
-            return ""
-        volume_id = item["id"]
-        capa_url = (
-            f"https://books.google.com/books/content"
-            f"?id={volume_id}&printsec=frontcover&img=1&zoom=0"
-        )
-        head = requests.head(capa_url, timeout=5)
-        tamanho = int(head.headers.get("Content-Length", 10_000))
-        if tamanho > 5_000:
-            return capa_url
+        if data and data.get("totalItems"):
+            item = data["items"][0]
+            if item.get("volumeInfo", {}).get("imageLinks"):
+                volume_id = item["id"]
+                capa_url = (
+                    f"https://books.google.com/books/content"
+                    f"?id={volume_id}&printsec=frontcover&img=1&zoom=0"
+                )
+                head = requests.head(capa_url, timeout=5)
+                tamanho = int(head.headers.get("Content-Length", 10_000))
+                if tamanho > 5_000:
+                    return capa_url
     except requests.RequestException:
         pass
+
+    # Estágio 4 — Google Books por título+autor (cobre ISBNs brasileiros sem indexação por ISBN)
+    if titulo:
+        try:
+            autor_principal = (autores or "").split(",")[0].strip()
+            query = f'intitle:"{titulo}"'
+            if autor_principal:
+                query += f' inauthor:"{autor_principal}"'
+            url = f"https://www.googleapis.com/books/v1/volumes?q={requests.utils.quote(query)}"
+            if GOOGLE_BOOKS_API_KEY:
+                url += f"&key={GOOGLE_BOOKS_API_KEY}"
+            data = _get_json(url, tentativas=1, timeout=5)
+            if data and data.get("totalItems"):
+                for item in data.get("items", []):
+                    if not item.get("volumeInfo", {}).get("imageLinks"):
+                        continue
+                    volume_id = item["id"]
+                    capa_url = (
+                        f"https://books.google.com/books/content"
+                        f"?id={volume_id}&printsec=frontcover&img=1&zoom=0"
+                    )
+                    head = requests.head(capa_url, timeout=5)
+                    tamanho = int(head.headers.get("Content-Length", 10_000))
+                    if tamanho > 5_000:
+                        return capa_url
+        except requests.RequestException:
+            pass
 
     return ""
 

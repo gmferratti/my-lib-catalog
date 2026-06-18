@@ -347,6 +347,41 @@ def test_buscar_capa_erro_de_rede_nao_lanca(mocker):
     assert buscar_capa(ISBN) == ""
 
 
+def test_buscar_capa_miss_nao_cacheia(mocker):
+    _reset_cache(mocker)
+    mocker.patch("requests.head", return_value=_mock_head(mocker, status=404))
+    mocker.patch("requests.get", side_effect=[_mock_get_sem_cover(mocker), _mock_get_sem_cover(mocker)])
+    from catalog.metadata.api import buscar_capa
+    assert buscar_capa(ISBN) == ""
+    api_module._salvar_cache.assert_not_called()
+
+
+def test_buscar_capa_stage4_titulo_autor(mocker):
+    _reset_cache(mocker)
+    ol_404 = _mock_head(mocker, status=404)
+    gb_hit = _mock_head(mocker, status=200, content_length=50_000)
+    mocker.patch("requests.head", side_effect=[ol_404, ol_404, ol_404, gb_hit])
+
+    ol_search_vazio = _mock_get_sem_cover(mocker)
+    gb_isbn_sem_resultados = mocker.Mock()
+    gb_isbn_sem_resultados.status_code = 200
+    gb_isbn_sem_resultados.json.return_value = {"totalItems": 0}
+    gb_isbn_sem_resultados.raise_for_status = mocker.Mock()
+    gb_titulo_resp = mocker.Mock()
+    gb_titulo_resp.status_code = 200
+    gb_titulo_resp.json.return_value = {
+        "totalItems": 1,
+        "items": [{"id": "vol999", "volumeInfo": {"imageLinks": {"thumbnail": "x"}}}],
+    }
+    gb_titulo_resp.raise_for_status = mocker.Mock()
+    mocker.patch("requests.get", side_effect=[ol_search_vazio, gb_isbn_sem_resultados, gb_titulo_resp])
+
+    from catalog.metadata.api import buscar_capa
+    url = buscar_capa(ISBN, titulo="Livro Teste", autores="Autor Um")
+    assert "books.google.com" in url
+    assert "vol999" in url
+
+
 def test_buscar_capa_retorna_cache_sem_requisicao(mocker):
     mocker.patch.object(api_module, "_capas_cache", {ISBN: "https://cached.example.com/capa.jpg"})
     mocker.patch("catalog.metadata.api._salvar_cache")
