@@ -144,9 +144,14 @@ def _get_cache() -> dict:
     global _capas_cache
     if _capas_cache is None:
         try:
-            _capas_cache = json.loads(Path(CAPAS_CACHE_FILE).read_text(encoding="utf-8"))
+            raw = json.loads(Path(CAPAS_CACHE_FILE).read_text(encoding="utf-8"))
         except (FileNotFoundError, json.JSONDecodeError):
-            _capas_cache = {}
+            raw = {}
+        # Compat shim: old format was {isbn: url_string}; new format is {isbn: {"url": ..., "fonte": ...}}
+        _capas_cache = {
+            k: v if isinstance(v, dict) else {"url": v, "fonte": "legado"}
+            for k, v in raw.items()
+        }
     return _capas_cache
 
 

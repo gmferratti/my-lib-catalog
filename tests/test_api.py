@@ -1,5 +1,6 @@
 import pytest
 import requests
+import json
 
 import catalog.metadata.api as api_module
 from catalog.metadata.api import (
@@ -484,6 +485,18 @@ def test_buscar_capa_override_vazio_suprime_rede(mocker):
     assert buscar_capa(ISBN) == ""
     mock_head.assert_not_called()
     mock_get.assert_not_called()
+
+
+def test_get_cache_compat_shim_converte_string_para_dict(mocker, tmp_path):
+    """Old cache format {isbn: url_string} is converted on load to {isbn: {"url": ..., "fonte": "legado"}}."""
+    old_cache = {ISBN: "https://exemplo.com/capa.jpg"}
+    cache_file = tmp_path / "capas_cache.json"
+    cache_file.write_text(json.dumps(old_cache), encoding="utf-8")
+    mocker.patch.object(api_module, "_capas_cache", None)
+    mocker.patch.object(api_module, "CAPAS_CACHE_FILE", str(cache_file))
+    from catalog.metadata.api import _get_cache
+    cache = _get_cache()
+    assert cache[ISBN] == {"url": "https://exemplo.com/capa.jpg", "fonte": "legado"}
 
 
 # ──────────────────────────────────────────────
