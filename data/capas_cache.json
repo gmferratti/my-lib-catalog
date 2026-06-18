@@ -1,67 +1,362 @@
 {
-  "9781098115784": "https://books.google.com/books/content?id=Y52uzQEACAAJ&printsec=frontcover&img=1&zoom=0",
-  "9780201633610": "",
-  "9786598896218": "https://ramalho.org/posts/pythonfluente2e-no-catarse/capa-LR-3-volumes.png",
-  "9788551012239": "https://covers.openlibrary.org/b/isbn/9788551012239-L.jpg",
-  "9786555985337": "https://covers.openlibrary.org/b/isbn/9786555985337-L.jpg",
-  "9788547001445": "https://books.google.com/books/content?id=yYdUEAAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788547001261": "https://books.google.com/books/content?id=xg8xCwAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788547001087": "https://books.google.com/books/content?id=h1bgDwAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788547000967": "https://books.google.com/books/content?id=0pm2DwAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788532530165": "https://books.google.com/books/content?id=1-shDAAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788532530158": "https://books.google.com/books/content?id=_OshDAAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788532530172": "https://books.google.com/books/content?id=4GGMDgAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788576573111": "https://books.google.com/books/content?id=_q7YEAAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788594541758": "https://covers.openlibrary.org/b/id/10527843-L.jpg",
-  "9786555980868": "https://books.google.com/books/content?id=yb7hDwAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9786555981346": "https://www.brincasa.com.br/media/catalog/product/cache/7ccf6df2650dee631d14c96e4a24c962/P/r/Prod341828Img410106.jpg",
-  "9788594540973": "https://covers.openlibrary.org/b/id/12371027-L.jpg",
-  "9786555980134": "https://books.google.com/books/content?id=-q8PEAAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788564855526": "https://books.google.com/books/content?id=T2CDAwAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9786555981889": "https://books.google.com/books/content?id=toOREQAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9786555980325": "https://livrariadamente.com.br/wp-content/uploads/2021/05/60.png",
-  "9786555981742": "https://books.google.com/books/content?id=qdw2EQAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788594541574": "https://i.zst.com.br/thumbs/12/19/12/1458552418.jpg",
-  "9786555980998": "https://books.google.com/books/content?id=e0h_EQAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9786555980950": "https://books.google.com/books/content?id=NTSNEAAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788594540799": "https://covers.openlibrary.org/b/id/12371025-L.jpg",
-  "9786555981407": "https://covers.openlibrary.org/b/id/12394026-L.jpg",
-  "9788594541697": "https://covers.openlibrary.org/b/id/10857970-L.jpg",
-  "9786555982268": "https://covers.openlibrary.org/b/id/13696782-L.jpg",
-  "9788546902712": "https://books.google.com/books/content?id=j9KeEQAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788532531025": "https://books.google.com/books/content?id=qDYQCwAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788532531544": "https://books.google.com/books/content?id=ZDgQCwAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9786555322569": "https://images.tcdn.com.br/img/img_prod/1169092/harry_potter_e_a_ordem_da_fenix_edicao_capa_dura_ilustrada_51529_1_6550258860b4b2121392fbcb74b0b1c0.jpg",
-  "9788532530271": "https://covers.openlibrary.org/b/isbn/9788532530271-L.jpg",
-  "9788532530554": "https://covers.openlibrary.org/b/id/15158664-L.jpg",
-  "9788522107575": "https://image.isu.pub/111110193905-3fb26960051a4cfba516232bdc4a0577/jpg/page_16_social_preview.jpg",
-  "9788575221525": "https://books.google.com/books/content?id=snmJepzoNfgC&printsec=frontcover&img=1&zoom=0",
-  "9788537801161": "https://m.media-amazon.com/images/I/81dod7waFgL._SL1500_.jpg",
-  "9780262035613": "https://books.google.com/books/content?id=Np9SDQAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9780534391881": "https://covers.openlibrary.org/b/isbn/9780534391881-M.jpg",
-  "9788521617297": "https://books.google.com/books/content?id=9HrxEAAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788550804682": "https://covers.openlibrary.org/b/isbn/9788550804682-L.jpg",
-  "9786555203370": "https://imagens.disal.com.br/produtos/ampliada/9289722.jpg",
-  "9788576089728": "https://m.media-amazon.com/images/I/61qn0sroQFL._SL1000_.jpg",
-  "9788575228050": "https://books.google.com/books/content?id=YAqwDwAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9780984782857": "https://covers.openlibrary.org/b/id/7276811-L.jpg",
-  "9788550804606": "https://covers.openlibrary.org/b/id/13889303-L.jpg",
-  "9788576082675": "https://books.google.com/books/content?id=21W_EAAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9786598977832": "https://ramalho.org/posts/pythonfluente2e-no-catarse/capa-LR-3-volumes.png",
-  "9780578973838": "https://books.google.com/books/content?id=82iszgEACAAJ&printsec=frontcover&img=1&zoom=0",
-  "9786586057102": "https://books.google.com/books/content?id=GLTfDwAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9781617296864": "https://covers.openlibrary.org/b/isbn/9781617296864-L.jpg",
-  "9788575229316": "https://books.google.com/books/content?id=xGWDEQAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9781491963043": "https://books.google.com/books/content?id=ZWqPvgAACAAJ&printsec=frontcover&img=1&zoom=0",
-  "9788576088028": "https://indicalivros.com/livros/logica-para-leigos-mark-zegarelli/logica-para-leigos-mark-zegarelli-capa.webp",
-  "9786555522631": "https://m.media-amazon.com/images/I/71vc7jzRgEL._SL1500_.jpg",
-  "9788569032601": "https://books.google.com/books/content?id=qURQDQAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788555193347": "https://books.google.com/books/content?id=0y-9EAAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788595082311": "https://covers.openlibrary.org/b/id/4918564-L.jpg",
-  "9780393866865": "https://books.google.com/books/content?id=fmSNEAAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788592795788": "https://covers.openlibrary.org/b/id/8191910-L.jpg",
-  "9788592795238": "https://covers.openlibrary.org/b/isbn/9788592795238-L.jpg",
-  "9788575597309": "https://books.google.com/books/content?id=mV7GDwAAQBAJ&printsec=frontcover&img=1&zoom=0",
-  "9788535906097": "https://covers.openlibrary.org/b/isbn/9788535906097-L.jpg",
-  "9788501028723": "https://books.google.com/books/content?id=PQiQDwAAQBAJ&printsec=frontcover&img=1&zoom=0"
+  "9781098115784": {
+    "url": "https://books.google.com/books/content?id=Y52uzQEACAAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_isbn"
+  },
+  "9786598896218": {
+    "url": "https://ramalho.org/posts/pythonfluente2e-no-catarse/capa-LR-3-volumes.png",
+    "fonte": "duckduckgo"
+  },
+  "9788551012239": {
+    "url": "https://covers.openlibrary.org/b/isbn/9788551012239-L.jpg",
+    "fonte": "openlibrary_isbn"
+  },
+  "9786555985337": {
+    "url": "https://covers.openlibrary.org/b/isbn/9786555985337-L.jpg",
+    "fonte": "openlibrary_isbn"
+  },
+  "9788547001445": {
+    "url": "https://books.google.com/books/content?id=yYdUEAAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788547001261": {
+    "url": "https://covers.openlibrary.org/b/id/12370542-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9788547001087": {
+    "url": "https://books.google.com/books/content?id=h1bgDwAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788547000967": {
+    "url": "https://covers.openlibrary.org/b/id/10363413-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9788532530165": {
+    "url": "https://books.google.com/books/content?id=1-shDAAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788532530158": {
+    "url": "https://covers.openlibrary.org/b/id/13776199-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9788532530172": {
+    "url": "https://books.google.com/books/content?id=4GGMDgAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788576573111": {
+    "url": "https://covers.openlibrary.org/b/id/12370815-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9788594541758": {
+    "url": "https://covers.openlibrary.org/b/id/10527843-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9786555980868": {
+    "url": "https://books.google.com/books/content?id=yb7hDwAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9786555981346": {
+    "url": "https://www.brincasa.com.br/media/catalog/product/cache/7ccf6df2650dee631d14c96e4a24c962/P/r/Prod341828Img410106.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9788594540973": {
+    "url": "https://covers.openlibrary.org/b/id/12371027-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9786555980134": {
+    "url": "https://covers.openlibrary.org/b/id/12369586-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9788564855526": {
+    "url": "https://books.google.com/books/content?id=T2CDAwAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_isbn"
+  },
+  "9786555981889": {
+    "url": "https://books.google.com/books/content?id=toOREQAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9786555980325": {
+    "url": "https://livrariadamente.com.br/wp-content/uploads/2021/05/60.png",
+    "fonte": "duckduckgo"
+  },
+  "9786555981742": {
+    "url": "https://books.google.com/books/content?id=qdw2EQAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788594541574": {
+    "url": "https://i.zst.com.br/thumbs/12/19/12/1458552418.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9786555980998": {
+    "url": "https://covers.openlibrary.org/b/id/12369589-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9786555980950": {
+    "url": "https://books.google.com/books/content?id=NTSNEAAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788594540799": {
+    "url": "https://covers.openlibrary.org/b/id/12371025-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9786555981407": {
+    "url": "https://skoob.s3.amazonaws.com/livros/12014408/HP_LOVECRAFT_MEDO_CLASSICO__163301873612014408SK-V11633018738B.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9788594541697": {
+    "url": "https://covers.openlibrary.org/b/id/10857970-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9786555982268": {
+    "url": "https://covers.openlibrary.org/b/id/13696782-L.jpg",
+    "fonte": "openlibrary_titulo"
+  },
+  "9788546902712": {
+    "url": "https://books.google.com/books/content?id=j9KeEQAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788532531025": {
+    "url": "https://books.google.com/books/content?id=qDYQCwAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788532531544": {
+    "url": "https://covers.openlibrary.org/b/id/12059372-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9786555322569": {
+    "url": "https://images.tcdn.com.br/img/img_prod/1169092/harry_potter_e_a_ordem_da_fenix_edicao_capa_dura_ilustrada_51529_1_6550258860b4b2121392fbcb74b0b1c0.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9788539305247": {
+    "url": "https://books.google.com/books/content?id=7n-RBgAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9786555981506": {
+    "url": "https://darkside.vtexassets.com/arquivos/ids/200964/dicionario-de-demonios-0.png?v=638943277745830000",
+    "fonte": "duckduckgo"
+  },
+  "9788576571971": {
+    "url": "https://covers.openlibrary.org/b/isbn/9788576571971-L.jpg",
+    "fonte": "openlibrary_isbn"
+  },
+  "9788521638759": {
+    "url": "https://www.dilivros.com.br/capas/759/9788521638759.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9786555981230": {
+    "url": "https://covers.openlibrary.org/b/isbn/9786555981230-L.jpg",
+    "fonte": "openlibrary_isbn"
+  },
+  "9786555982039": {
+    "url": "https://images.tcdn.com.br/img/img_prod/1222279/jim_jones_profile_massacre_em_jonestown_autor_jeff_guinn_ed_darkside_2501_1_3baf83edb8b4cec04335d53acec7f924.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9786555982220": {
+    "url": "https://books.google.com/books/content?id=Wp41EQAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788594540003": {
+    "url": "https://books.google.com/books/content?id=m2lODwAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9786555981919": {
+    "url": "https://down-br.img.susercontent.com/file/br-11134207-7r98o-m5ljs1r0klo263",
+    "fonte": "duckduckgo"
+  },
+  "9786555982985": {
+    "url": "https://darkside.vtexassets.com/arquivos/ids/192550/eu-sou-o-rei-do-castelo-2.png?v=638972497329070000",
+    "fonte": "duckduckgo"
+  },
+  "9786555981377": {
+    "url": "https://covers.openlibrary.org/b/id/12390935-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9788537815199": {
+    "url": "https://i.zst.com.br/thumbs/12/34/11/99463521.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9786555981995": {
+    "url": "https://books.google.com/books/content?id=6PckEQAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788594541710": {
+    "url": "https://m.media-amazon.com/images/I/619uoUOalmL._SL1000_.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9788566636239": {
+    "url": "https://covers.openlibrary.org/b/isbn/9788566636239-L.jpg",
+    "fonte": "openlibrary_isbn"
+  },
+  "9788594540188": {
+    "url": "https://covers.openlibrary.org/b/isbn/9788594540188-L.jpg",
+    "fonte": "openlibrary_isbn"
+  },
+  "9788594540249": {
+    "url": "https://covers.openlibrary.org/b/id/11181984-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9788594541208": {
+    "url": "https://covers.openlibrary.org/b/id/12072077-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9786555980004": {
+    "url": "https://covers.openlibrary.org/b/id/14314858-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9788574321783": {
+    "url": "https://marketplace.canva.com/EAFI8A8C6_s/1/0/1003w/canva-capa-de-livro-infantil-aventura-abstrato-colorido-hwEQgVR4U4g.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9786556928586": {
+    "url": "https://covers.openlibrary.org/b/isbn/9786556928586-L.jpg",
+    "fonte": "openlibrary_isbn"
+  },
+  "9788576087793": {
+    "url": "https://covers.openlibrary.org/b/id/10482742-L.jpg",
+    "fonte": "openlibrary_titulo"
+  },
+  "9786555983852": {
+    "url": "https://darkside.vtexassets.com/arquivos/ids/195340/morte_sf_lembrancas_loja_1.png?v=638519819345630000",
+    "fonte": "duckduckgo"
+  },
+  "9780761929987": {
+    "url": "https://covers.openlibrary.org/b/isbn/9780761929987-M.jpg",
+    "fonte": "openlibrary_isbn"
+  },
+  "9780761949961": {
+    "url": "https://covers.openlibrary.org/b/isbn/9780761949961-M.jpg",
+    "fonte": "openlibrary_isbn"
+  },
+  "9788551006153": {
+    "url": "https://covers.openlibrary.org/b/id/9335113-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9788539306916": {
+    "url": "https://books.google.com/books/content?id=Cf1QDwAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9786557131152": {
+    "url": "https://books.google.com/books/content?id=PvpTEAAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9786557130513": {
+    "url": "https://d3ugyf2ht6aenh.cloudfront.net/stores/001/133/453/products/e89dc552-d776-4def-b3a1-d15b524f98d4-399632f57796a55c7816944445384532-640-0.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9788582850039": {
+    "url": "https://imgv2-1-f.scribdassets.com/img/document/356681687/original/aa99c9d931/1?v=1",
+    "fonte": "duckduckgo"
+  },
+  "9788539301348": {
+    "url": "https://m.media-amazon.com/images/I/A1CDz01SDaL._SL1500_.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9788543107325": {
+    "url": "https://books.google.com/books/content?id=SNuZDwAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788543109992": {
+    "url": "https://books.google.com/books/content?id=wMb1DwAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788572443166": {
+    "url": "https://m.media-amazon.com/images/I/61-XM39ehYL._SL1438_.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9788572442626": {
+    "url": "https://img.perlego.com/book-covers/5108581/9788572442626_300_450.webp",
+    "fonte": "duckduckgo"
+  },
+  "9788592886851": {
+    "url": "https://m.media-amazon.com/images/I/71AcaJXb8WL._SL1500_.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9788580572698": {
+    "url": "https://books.google.com/books/content?id=f1YvDwAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9786589548003": {
+    "url": "https://a-static.mlcdn.com.br/800x560/manual-da-redacao-folha-de-sao-paulo/livrariamartinsfontespaulista/833973/db4b97481f9c27f1fe58f65089f00b77.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9788532649188": {
+    "url": "https://m.media-amazon.com/images/I/41kSykO5OeL._SY445_SX342_ML2_.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9786557135099": {
+    "url": "https://books.google.com/books/content?id=lzaVEAAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788574482231": {
+    "url": "https://cdn.awsli.com.br/2500x2500/765/765972/produto/150132656/2d9db5c4b1.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9788535925661": {
+    "url": "https://books.google.com/books/content?id=wHr5CAAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788580490121": {
+    "url": "https://books.google.com/books/content?id=TuvHFt2hxF0C&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788543104904": {
+    "url": "https://images.tcdn.com.br/img/img_prod/1073155/1001_series_de_tv_para_assistir_antes_de_morrer_23111_1_ef8692ef2510d3495c6485a2e0bc29d1.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9788575429198": {
+    "url": "https://down-br.img.susercontent.com/file/br-11134207-81z1k-mid59nf20nb59c",
+    "fonte": "duckduckgo"
+  },
+  "9788535925029": {
+    "url": "https://books.google.com/books/content?id=3x0REAAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9786555606454": {
+    "url": "https://books.google.com/books/content?id=6_mzEAAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9786555603323": {
+    "url": "https://books.google.com/books/content?id=ItmnBAAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9788576573135": {
+    "url": "https://covers.openlibrary.org/b/id/11481354-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9788576573821": {
+    "url": "https://covers.openlibrary.org/b/id/2421405-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9788576573142": {
+    "url": "https://books.google.com/books/content?id=h82uCgAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_titulo"
+  },
+  "9786557530290": {
+    "url": "https://editoradraco.com.br/wp-content/uploads/2025/02/paulo-freire-capa1.jpg",
+    "fonte": "duckduckgo"
+  },
+  "9786587817316": {
+    "url": "https://books.google.com/books/content?id=MRjDzwEACAAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_isbn"
+  },
+  "9781492087915": {
+    "url": "https://books.google.com/books/content?id=fHw8zgEACAAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_isbn"
+  },
+  "9788575229903": {
+    "url": "https://books.google.com/books/content?id=rCrMEQAAQBAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_isbn"
+  },
+  "9780241956878": {
+    "url": "https://books.google.com/books/content?id=cIMdYAAACAAJ&printsec=frontcover&img=1&zoom=0",
+    "fonte": "googlebooks_isbn"
+  },
+  "9788537817643": {
+    "url": "https://covers.openlibrary.org/b/id/12370164-L.jpg",
+    "fonte": "openlibrary_cover_i"
+  },
+  "9788525415332": {
+    "url": "https://cdn.slidesharecdn.com/ss_thumbnails/fernandopessoaheternimo-100218123436-phpapp01-thumbnail.jpg?width=640&height=640&fit=bounds",
+    "fonte": "duckduckgo"
+  }
 }
