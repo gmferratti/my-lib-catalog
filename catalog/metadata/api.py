@@ -6,7 +6,11 @@ from pathlib import Path
 
 import requests
 
-from ..config import CAPAS_CACHE_FILE, CAPAS_MANUAIS_FILE, CSV_HEADERS, GOOGLE_BOOKS_API_KEY, ISBNDB_API_KEY
+from ..config import (
+    CAPAS_CACHE_FILE, CAPAS_MANUAIS_FILE, CSV_HEADERS,
+    GOOGLE_BOOKS_API_KEY, GOOGLE_CUSTOM_SEARCH_KEY, GOOGLE_CUSTOM_SEARCH_CX,
+    ISBNDB_API_KEY,
+)
 
 
 def _get_json(
@@ -274,6 +278,35 @@ def _capa_duckduckgo(isbn: str, titulo: str = "", autores: str = "") -> str:
     return ""
 
 
+def _capa_google_cse(isbn: str, titulo: str = "", autores: str = "") -> str:
+    if not GOOGLE_CUSTOM_SEARCH_KEY or not GOOGLE_CUSTOM_SEARCH_CX:
+        return ""
+    partes = [p for p in [isbn, titulo, (autores or "").split(",")[0].strip(), "capa livro"] if p]
+    query = " ".join(partes)
+    try:
+        data = _get_json(
+            f"https://customsearch.googleapis.com/customsearch/v1"
+            f"?q={requests.utils.quote(query)}&searchType=image&num=3"
+            f"&key={GOOGLE_CUSTOM_SEARCH_KEY}&cx={GOOGLE_CUSTOM_SEARCH_CX}",
+            tentativas=1, timeout=10,
+        )
+        for item in (data or {}).get("items", []):
+            img_url = item.get("link", "")
+            if not img_url:
+                continue
+            try:
+                head = requests.head(img_url, timeout=5, allow_redirects=True)
+                ct = head.headers.get("Content-Type", "")
+                cl = int(head.headers.get("Content-Length", 10_000))
+                if head.status_code == 200 and "image" in ct and cl > 5_000:
+                    return img_url
+            except requests.RequestException:
+                continue
+    except (requests.RequestException, ValueError):
+        pass
+    return ""
+
+
 def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
     # Estágio 1 — Open Library por ISBN (Large depois Medium)
     # ?default=false faz o OL retornar 404 em vez de redirecionar para placeholder;
@@ -364,6 +397,11 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> str:
 
     # Estágio 6 — DuckDuckGo image search (fallback informal; sem chave, sem dependências)
     url = _capa_duckduckgo(isbn, titulo, autores)
+    if url:
+        return url
+
+    # Estágio 7 — Google Custom Search Images (opcional; requer GOOGLE_CUSTOM_SEARCH_KEY + CX)
+    url = _capa_google_cse(isbn, titulo, autores)
     if url:
         return url
 

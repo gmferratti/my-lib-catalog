@@ -620,3 +620,38 @@ def test_capa_duckduckgo_aceita_sem_content_length(mocker):
 
     url = _capa_duckduckgo("9786555322569", "Harry Potter", "J.K. Rowling")
     assert url == "https://cdn.exemplo.com/capa.jpg"
+
+
+# ──────────────────────────────────────────────
+# _capa_google_cse (Stage 7)
+# ──────────────────────────────────────────────
+
+def test_capa_google_cse_ignorado_sem_chave(mocker):
+    mocker.patch.object(api_module, "GOOGLE_CUSTOM_SEARCH_KEY", "")
+    mocker.patch.object(api_module, "GOOGLE_CUSTOM_SEARCH_CX", "fake-cx")
+    mock_get = mocker.patch("requests.get")
+    from catalog.metadata.api import _capa_google_cse
+    assert _capa_google_cse(ISBN) == ""
+    mock_get.assert_not_called()
+
+
+def test_capa_google_cse_happy_path(mocker):
+    mocker.patch.object(api_module, "GOOGLE_CUSTOM_SEARCH_KEY", "fake-key")
+    mocker.patch.object(api_module, "GOOGLE_CUSTOM_SEARCH_CX", "fake-cx")
+    payload = {"items": [{"link": "https://example.com/capa.jpg"}]}
+    mocker.patch("requests.get", return_value=_mock_resp(mocker, payload))
+    head_resp = mocker.Mock()
+    head_resp.status_code = 200
+    head_resp.headers = {"Content-Type": "image/jpeg", "Content-Length": "50000"}
+    mocker.patch("requests.head", return_value=head_resp)
+    from catalog.metadata.api import _capa_google_cse
+    url = _capa_google_cse(ISBN, "Livro Teste", "Autor")
+    assert url == "https://example.com/capa.jpg"
+
+
+def test_capa_google_cse_connection_error(mocker):
+    mocker.patch.object(api_module, "GOOGLE_CUSTOM_SEARCH_KEY", "fake-key")
+    mocker.patch.object(api_module, "GOOGLE_CUSTOM_SEARCH_CX", "fake-cx")
+    mocker.patch("requests.get", side_effect=requests.ConnectionError)
+    from catalog.metadata.api import _capa_google_cse
+    assert _capa_google_cse(ISBN) == ""

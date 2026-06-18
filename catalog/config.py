@@ -18,3 +18,9 @@ GOOGLE_BOOKS_API_KEY = os.environ.get("GOOGLE_BOOKS_API_KEY", "")
 
 # Chave gratuita em https://isbndb.com/isbn-database (plano Free: 500 req/mês)
 ISBNDB_API_KEY = os.environ.get("ISBNDB_API_KEY", "")
+
+# Chaves do Google Custom Search (opcional).
+# Criar em console.cloud.google.com → Custom Search API.
+# GOOGLE_CUSTOM_SEARCH_CX: ID do mecanismo de busca em programmablesearchengine.google.com
+GOOGLE_CUSTOM_SEARCH_KEY = os.environ.get("GOOGLE_CUSTOM_SEARCH_KEY", "")
+GOOGLE_CUSTOM_SEARCH_CX  = os.environ.get("GOOGLE_CUSTOM_SEARCH_CX", "")
