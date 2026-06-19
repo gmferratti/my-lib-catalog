@@ -18,7 +18,7 @@ from ui.utils import ESTILOS, _carregar, _carregar_config
 st.title("📚 Minha Biblioteca")
 
 with st.sidebar:
-    st.page_link("app.py", label="📚 Acervo")
+    st.page_link("pages/acervo.py", label="📚 Acervo")
     st.page_link("pages/estantes.py", label="🗂️ Estantes")
     st.page_link("pages/sobre.py", label="📖 Sobre")
 
