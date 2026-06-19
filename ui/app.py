@@ -244,9 +244,14 @@ def _dialog_editar(registro: dict) -> None:
 def _render_acervo() -> None:
     registros = _carregar()
 
+    busca = st.text_input(
+        "",
+        placeholder="🔍 Buscar por título ou autor...",
+        label_visibility="collapsed",
+    )
+
     with st.sidebar:
         st.header("Filtros")
-        busca = st.text_input("Título ou autor", placeholder="ex: Tolkien")
         idiomas = sorted({r.get("idioma", "") for r in registros if r.get("idioma")})
         idioma_sel = st.selectbox("Idioma", ["Todos"] + idiomas)
         fontes_disp = sorted({r.get("fonte", "") for r in registros if r.get("fonte")})
