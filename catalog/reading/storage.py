@@ -3,7 +3,7 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
-import catalog.config as cfg
+from .. import config as cfg
 
 _lock = threading.Lock()
 
