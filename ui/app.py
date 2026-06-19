@@ -151,6 +151,85 @@ def _badge_capa(capa_fonte: str) -> str:
     )
 
 
+# ── Acervo: ficha de catálogo ─────────────────────────────────────────────────
+
+def _render_ficha(registro: dict) -> None:
+    if st.button("← Voltar ao acervo"):
+        del st.session_state["isbn_selecionado"]
+        st.rerun()
+
+    st.divider()
+
+    capa = registro.get("capa_url", "")
+    col_capa, col_info = st.columns([1, 3])
+
+    with col_capa:
+        if capa:
+            st.image(capa, width=200)
+        else:
+            st.markdown(
+                '<div style="height:280px;background:#eceff1;display:flex;'
+                'align-items:center;justify-content:center;font-size:4rem;'
+                'border-radius:8px">📖</div>',
+                unsafe_allow_html=True,
+            )
+
+    with col_info:
+        st.title(registro.get("titulo") or registro.get("isbn", "—"))
+        if registro.get("autores"):
+            st.markdown(f"**{registro['autores']}**")
+
+        partes = []
+        if registro.get("ano"):
+            partes.append(registro["ano"])
+        if registro.get("editora"):
+            partes.append(registro["editora"])
+        if partes:
+            st.caption(" · ".join(partes))
+
+        st.divider()
+
+        c1, c2, c3 = st.columns(3)
+        c1.markdown(f"**ISBN**  \n`{registro['isbn']}`")
+        idioma_nome = _IDIOMA_NORM.get(
+            registro.get("idioma", ""), registro.get("idioma") or "—"
+        )
+        c2.markdown(f"**Idioma**  \n{idioma_nome}")
+        c3.markdown(f"**Páginas**  \n{registro.get('paginas') or '—'}")
+
+        if registro.get("assuntos"):
+            st.markdown(f"**Assuntos:** {registro['assuntos']}")
+
+        st.divider()
+
+        st.markdown(
+            f"**Fonte metadata:** {_badge(registro.get('fonte', ''))}",
+            unsafe_allow_html=True,
+        )
+        badge_capa = _badge_capa(registro.get("capa_fonte", ""))
+        if badge_capa:
+            st.markdown(f"**Fonte capa:** {badge_capa}", unsafe_allow_html=True)
+        st.markdown(f"**Cadastrado:** {registro.get('data_cadastro', '—')}")
+
+        st.divider()
+
+        estante = registro.get("estante", "")
+        prateleira = registro.get("prateleira", "")
+        if estante and prateleira:
+            st.markdown(f"📍 **{estante} / Prateleira {prateleira}**")
+        else:
+            st.markdown(
+                '<p style="color:#90a4ae">📍 Posição não confirmada — '
+                'gere e aplique uma sugestão na aba Estantes.</p>',
+                unsafe_allow_html=True,
+            )
+
+        st.divider()
+
+        if st.button("✏️ Editar este livro", key=f"edit_ficha_{registro['isbn']}"):
+            _dialog_editar(registro)
+
+
 # ── Acervo: edição ────────────────────────────────────────────────────────────
 
 def _salvar_edicao(isbn: str, campos: dict) -> None:
@@ -244,6 +323,14 @@ def _dialog_editar(registro: dict) -> None:
 def _render_acervo() -> None:
     registros = _carregar()
 
+    isbn_sel = st.session_state.get("isbn_selecionado")
+    if isbn_sel:
+        r = next((r for r in registros if r["isbn"] == isbn_sel), None)
+        if r:
+            _render_ficha(r)
+            return
+        del st.session_state["isbn_selecionado"]
+
     busca = st.text_input(
         "",
         placeholder="🔍 Buscar por título ou autor...",
@@ -330,6 +417,10 @@ def _render_acervo() -> None:
                     badge_capa = _badge_capa(r.get("capa_fonte", ""))
                     if badge_capa:
                         st.markdown(badge_capa, unsafe_allow_html=True)
+                    if st.button("📖 Ver ficha", key=f"ficha_{r['isbn']}",
+                                 use_container_width=True):
+                        st.session_state["isbn_selecionado"] = r["isbn"]
+                        st.rerun()
                     if modo_edicao:
                         if st.button("✏️ Editar", key=f"edit_{r['isbn']}",
                                      use_container_width=True):
