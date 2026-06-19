@@ -1,7 +1,13 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+_proj_root = str(Path(__file__).parent.parent)
+sys.path.insert(0, _proj_root)
+
+# Evict any stale installed 'catalog' from site-packages before pages load
+for _k in [k for k in sys.modules if k == "catalog" or k.startswith("catalog.")]:
+    if "site-packages" in (getattr(sys.modules[_k], "__file__", "") or ""):
+        del sys.modules[_k]
 
 import streamlit as st
 
