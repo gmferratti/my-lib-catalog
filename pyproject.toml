@@ -15,6 +15,9 @@ dev = [
     "pytest-mock>=3.14",
 ]
 
+[tool.setuptools]
+packages = []
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v"

@@ -4,7 +4,9 @@ import threading
 from datetime import datetime
 
 _lock = threading.Lock()
-_LEITURA_FILE = "data/lista_leitura.json"
+_LEITURA_FILE = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "lista_leitura.json")
+)
 
 
 def _agora() -> str:
