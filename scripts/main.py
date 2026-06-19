@@ -41,16 +41,26 @@ from catalog.storage import (
 )
 
 
-def _on_result(registro: dict) -> None:
-    if "_erro" in registro:
-        print(f"\n  ✗ [{registro['isbn']}] erro inesperado: {registro['_erro']}  (fica pendente)",
-              flush=True)
-    elif registro.get("titulo"):
-        print(f"\n  ✓ [{registro['isbn']}] {registro['titulo']} — {registro['autores']}",
-              flush=True)
-    else:
-        print(f"\n  ⚠  [{registro['isbn']}] sem metadados — salvo só o ISBN",
-              flush=True)
+def _make_on_result(fila: "queue.Queue"):
+    def _on_result(registro: dict) -> None:
+        if "_erro" in registro:
+            print(f"\n  ✗ [{registro['isbn']}] erro inesperado: {registro['_erro']}  (fica pendente)",
+                  flush=True)
+        elif registro.get("titulo"):
+            print(f"\n  ✓ [{registro['isbn']}] {registro['titulo']} — {registro['autores']}",
+                  flush=True)
+        else:
+            print(f"\n  ⚠  [{registro['isbn']}] sem metadados — salvo só o ISBN",
+                  flush=True)
+
+        # on_result é chamado antes de task_done(), então -1 para o count real
+        restante = fila.unfinished_tasks - 1
+        if restante > 0:
+            print(f"     ({restante} na fila)", flush=True)
+        else:
+            print(f"     (fila vazia ✓)", flush=True)
+
+    return _on_result
 
 
 def _reprocessar_nao_encontrados() -> None:
@@ -152,7 +162,7 @@ def main() -> None:
         print()
 
     w = threading.Thread(target=worker, args=(fila, parar_evento),
-                         kwargs={"on_result": _on_result}, daemon=True)
+                         kwargs={"on_result": _make_on_result(fila)}, daemon=True)
     w.start()
 
     try:
@@ -206,15 +216,52 @@ def main() -> None:
     print(f"\nSessão encerrada. {len(conhecidos)} ISBN(s) conhecido(s).")
 
 
+def _processar_lista(isbns_raw: list[str]) -> None:
+    conhecidos = carregar_isbns_cadastrados()
+    fila: queue.Queue = queue.Queue()
+    parar_evento = threading.Event()
+
+    w = threading.Thread(target=worker, args=(fila, parar_evento),
+                         kwargs={"on_result": _make_on_result(fila)}, daemon=True)
+    w.start()
+
+    enfileirados = 0
+    for raw in isbns_raw:
+        isbn = normalizar_isbn(raw.strip())
+        if not isbn:
+            print(f"  ! '{raw}' não é ISBN válido — ignorado.")
+            continue
+        if isbn in conhecidos:
+            print(f"  ⚠  {isbn} já está no acervo — ignorado.")
+            continue
+        conhecidos.add(isbn)
+        adicionar_pendente(isbn)
+        fila.put(isbn)
+        print(f"  → {isbn} enfileirado.")
+        enfileirados += 1
+
+    if enfileirados:
+        print(f"\nAguardando processamento de {enfileirados} ISBN(s)...")
+        fila.join()
+
+    parar_evento.set()
+    fila.put(None)
+    w.join(timeout=3)
+    print(f"\nConcluído. {enfileirados} ISBN(s) processado(s).")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--reprocessar", action="store_true")
     parser.add_argument("--capas", action="store_true")
     parser.add_argument("--fix", action="store_true")
+    parser.add_argument("--isbns", nargs="+", metavar="ISBN")
     args, _ = parser.parse_known_args()
     if args.reprocessar:
         _reprocessar_nao_encontrados()
     elif args.capas:
         _atualizar_capas(fix=args.fix)
+    elif args.isbns:
+        _processar_lista(args.isbns)
     else:
         main()

@@ -18,6 +18,9 @@ run:            ## Inicia o scanner interativo (CLI)
 ui:             ## Abre a interface de consulta no navegador
 	$(UV) run streamlit run ui/app.py
 
+batch:          ## Processa ISBNs passados em ISBNS="isbn1 isbn2 ..." sem abrir o scanner
+	PYTHONPATH=. $(UV) run python scripts/main.py --isbns $(ISBNS)
+
 reprocessar:    ## Rebusca metadados para livros cadastrados com fonte=nao_encontrado
 	PYTHONPATH=. $(UV) run python scripts/main.py --reprocessar
 
