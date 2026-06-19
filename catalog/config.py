@@ -10,6 +10,7 @@ CAPAS_MANUAIS_FILE = "data/capas_manuais.json"
 CSV_HEADERS = [
     "isbn", "titulo", "autores", "editora", "ano",
     "paginas", "idioma", "assuntos", "capa_url", "capa_fonte", "fonte", "data_cadastro",
+    "estante", "prateleira",
 ]
 
 # Chave gratuita em https://console.cloud.google.com/ (Books API, 1000 req/dia).

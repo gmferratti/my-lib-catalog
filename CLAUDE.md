@@ -45,8 +45,11 @@ ui/app.py  (Streamlit — processo separado)
 | `idioma` | str | `"en"`, `"pt"` | código ISO 639-1 ou vazio |
 | `assuntos` | str | `"Science, Mathematics"` | máx. 5, separados por vírgula |
 | `capa_url` | str | `"https://..."` | URL ou vazio |
+| `capa_fonte` | str | `"openlibrary_isbn"` | qual serviço forneceu a capa |
 | `fonte` | str | ver abaixo | qual API encontrou o livro |
 | `data_cadastro` | str | `"2026-05-25T14:44:06"` | ISO 8601, segundos |
+| `estante` | str | `"Estante 2"` | Vazio se posição não confirmada |
+| `prateleira` | str | `"B"` | Vazio se posição não confirmada |
 
 **Valores válidos de `fonte`:** `openlibrary`, `googlebooks`, `brasilapi`, `isbndb`, `nao_encontrado`, `manual`
 
