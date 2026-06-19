@@ -10,7 +10,14 @@ from ui.utils import _dialog_login, _is_autenticado
 
 st.title("📋 Lista de Leitura")
 
-itens = reading_storage.carregar()
+try:
+    itens = reading_storage.carregar()
+except Exception as _e:
+    st.error(f"Erro ao carregar lista de leitura: {type(_e).__name__}: {_e}")
+    st.code(f"_LEITURA_FILE = {reading_storage._LEITURA_FILE!r}\n__file__ = {reading_storage.__file__!r}")
+    import traceback
+    st.code(traceback.format_exc())
+    st.stop()
 registros = carregar_todos_registros()
 livros_por_isbn = {r["isbn"]: r for r in registros}
 autenticado = _is_autenticado()
