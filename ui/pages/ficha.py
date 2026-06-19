@@ -4,6 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 import streamlit as st
+import catalog.reading.storage as reading_storage
 from ui.utils import (
     _IDIOMA_NORM,
     _badge,
@@ -93,6 +94,53 @@ with col_info:
             'gere e aplique uma sugestão na aba Estantes.</p>',
             unsafe_allow_html=True,
         )
+
+    st.divider()
+    st.markdown("**📋 Lista de Leitura**")
+
+    itens_leitura = reading_storage.carregar()
+    item_leitura = next((i for i in itens_leitura if i["isbn"] == isbn), None)
+    paginas_total = int(registro.get("paginas") or 0)
+
+    STATUS_LABELS = {
+        "na_fila": "📋 Na fila",
+        "lendo": "📖 Lendo",
+        "lido": "✅ Lido",
+        "abandonado": "🚫 Abandonado",
+    }
+
+    if item_leitura is None:
+        if _is_autenticado():
+            if st.button("➕ Adicionar à fila de leitura", key=f"add_leitura_{isbn}"):
+                reading_storage.adicionar(isbn)
+                st.rerun()
+        else:
+            st.caption("🔒 Faça login para adicionar à lista de leitura.")
+    else:
+        st.markdown(
+            f"Status: **{STATUS_LABELS.get(item_leitura['status'], item_leitura['status'])}**"
+        )
+        progresso = item_leitura["progresso_paginas"]
+        if paginas_total:
+            pct = min(100, round(progresso / paginas_total * 100))
+            st.progress(
+                pct / 100,
+                text=f"{progresso} / {paginas_total} páginas ({pct}%)",
+            )
+        elif progresso:
+            st.caption(f"{progresso} páginas lidas")
+
+        if _is_autenticado() and item_leitura["status"] == "lendo":
+            nova_pagina = st.number_input(
+                "Página atual",
+                min_value=0,
+                max_value=paginas_total if paginas_total else 9999,
+                value=progresso,
+                key=f"prog_ficha_{isbn}",
+            )
+            if st.button("💾 Salvar progresso", key=f"salvar_ficha_{isbn}"):
+                reading_storage.atualizar_progresso(isbn, nova_pagina)
+                st.rerun()
 
     st.divider()
 
