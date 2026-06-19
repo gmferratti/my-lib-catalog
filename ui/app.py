@@ -1,4 +1,5 @@
 import sys
+import unicodedata
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -76,6 +77,10 @@ _IDIOMA_NORM = {
     "de": "Alemão", "deu": "Alemão", "ger": "Alemão",
     "ja": "Japonês", "jpn": "Japonês",
 }
+
+
+def _normalizar(s: str) -> str:
+    return unicodedata.normalize("NFD", s.lower()).encode("ascii", "ignore").decode("ascii")
 
 
 def _estatisticas(registros: list[dict]) -> dict:
@@ -365,9 +370,10 @@ def _render_acervo() -> None:
     if ocultar_sem_meta:
         filtrados = [r for r in filtrados if r.get("fonte") != "nao_encontrado"]
     if busca:
-        q = busca.lower()
+        q = _normalizar(busca)
         filtrados = [r for r in filtrados
-                     if q in r.get("titulo", "").lower() or q in r.get("autores", "").lower()]
+                     if q in _normalizar(r.get("titulo", ""))
+                     or q in _normalizar(r.get("autores", ""))]
     if idioma_sel != "Todos":
         filtrados = [r for r in filtrados if r.get("idioma") == idioma_sel]
     if fonte_sel != "Todas":
