@@ -11,7 +11,9 @@ from ui.utils import (
     _badge_capa,
     _carregar,
     _dialog_editar,
+    _dialog_login,
     _estatisticas,
+    _is_autenticado,
     _normalizar,
 )
 
@@ -46,8 +48,17 @@ with st.sidebar:
         label_visibility="collapsed",
     )
     st.divider()
-    modo_edicao = st.toggle("✏️ Modo edição", value=False,
-                            help="Exibe botão de edição em cada card")
+    if _is_autenticado():
+        modo_edicao = st.toggle("✏️ Modo edição", value=False,
+                                help="Exibe botão de edição em cada card")
+        if st.button("🔓 Sair do modo edição", use_container_width=True):
+            st.session_state["autenticado"] = False
+            st.rerun()
+    else:
+        modo_edicao = False
+        if st.button("🔒 Modo edição", use_container_width=True,
+                     help="Requer senha para editar o acervo"):
+            _dialog_login()
     st.divider()
     if st.button("🔄 Recarregar dados"):
         st.cache_data.clear()

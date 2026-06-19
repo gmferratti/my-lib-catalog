@@ -145,6 +145,23 @@ def _badge_capa(capa_fonte: str) -> str:
     )
 
 
+def _is_autenticado() -> bool:
+    return st.session_state.get("autenticado", False)
+
+
+@st.dialog("🔒 Acesso restrito", width="small")
+def _dialog_login() -> None:
+    st.markdown("Digite a senha para habilitar o modo edição.")
+    senha = st.text_input("Senha", type="password", label_visibility="collapsed")
+    if st.button("Entrar", type="primary", use_container_width=True):
+        senha_correta = st.secrets.get("EDIT_PASSWORD", "")
+        if senha and senha == senha_correta:
+            st.session_state["autenticado"] = True
+            st.rerun()
+        else:
+            st.error("Senha incorreta.")
+
+
 def _salvar_edicao(isbn: str, campos: dict) -> None:
     registros = carregar_todos_registros()
     for r in registros:

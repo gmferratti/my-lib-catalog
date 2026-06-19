@@ -10,6 +10,8 @@ from ui.utils import (
     _badge_capa,
     _carregar,
     _dialog_editar,
+    _dialog_login,
+    _is_autenticado,
 )
 
 isbn = st.session_state.get("isbn_ficha")
@@ -94,5 +96,11 @@ with col_info:
 
     st.divider()
 
-    if st.button("✏️ Editar este livro", key=f"edit_ficha_{registro['isbn']}"):
-        _dialog_editar(registro)
+    if _is_autenticado():
+        if st.button("✏️ Editar este livro", key=f"edit_ficha_{registro['isbn']}",
+                     type="primary"):
+            _dialog_editar(registro)
+    else:
+        if st.button("🔒 Editar este livro", key=f"edit_ficha_{registro['isbn']}",
+                     help="Requer senha para editar"):
+            _dialog_login()
