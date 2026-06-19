@@ -1,5 +1,4 @@
 import pytest
-import catalog.config as cfg
 import catalog.reading.storage as storage
 
 
@@ -7,7 +6,7 @@ import catalog.reading.storage as storage
 def _isolate(tmp_path, monkeypatch):
     leitura_file = str(tmp_path / "data" / "lista_leitura.json")
     (tmp_path / "data").mkdir()
-    monkeypatch.setattr(cfg, "LEITURA_FILE", leitura_file)
+    monkeypatch.setattr(storage, "_LEITURA_FILE", leitura_file)
 
 
 def test_carregar_vazio():

@@ -3,9 +3,8 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
-from .. import config as cfg
-
 _lock = threading.Lock()
+_LEITURA_FILE = "data/lista_leitura.json"
 
 
 def _agora() -> str:
@@ -13,7 +12,7 @@ def _agora() -> str:
 
 
 def _carregar_raw() -> dict:
-    path = Path(cfg.LEITURA_FILE)
+    path = Path(_LEITURA_FILE)
     if not path.exists():
         return {"itens": []}
     with open(path, encoding="utf-8") as f:
@@ -21,7 +20,7 @@ def _carregar_raw() -> dict:
 
 
 def _salvar_raw(data: dict) -> None:
-    path = Path(cfg.LEITURA_FILE)
+    path = Path(_LEITURA_FILE)
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
