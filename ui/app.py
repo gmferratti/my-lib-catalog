@@ -598,12 +598,30 @@ def _render_estantes() -> None:
 
     # ── Download ──────────────────────────────────────────────────────────
     txt = _gerar_txt(resultado, sem_lugar, estilo_usado)
-    st.download_button(
-        "📥 Baixar sugestão (.txt)",
-        data=txt.encode("utf-8"),
-        file_name=f"organizacao_{estilo_usado}.txt",
-        mime="text/plain",
-    )
+    col_dl, col_ap = st.columns([2, 3])
+    with col_dl:
+        st.download_button(
+            "📥 Baixar sugestão (.txt)",
+            data=txt.encode("utf-8"),
+            file_name=f"organizacao_{estilo_usado}.txt",
+            mime="text/plain",
+        )
+    with col_ap:
+        if st.button("✅ Aplicar esta sugestão como posição real", type="primary",
+                     use_container_width=True):
+            todos = carregar_todos_registros()
+            mapa: dict[str, tuple[str, str]] = {}
+            for prat in resultado:
+                for livro in prat.livros:
+                    mapa[livro["isbn"]] = (prat.estante, prat.prateleira)
+            for r in todos:
+                estante_val, prat_val = mapa.get(r["isbn"], ("", ""))
+                r["estante"] = estante_val
+                r["prateleira"] = prat_val
+            reescrever_registros(todos)
+            st.cache_data.clear()
+            st.toast("Posições aplicadas ao acervo!", icon="✅")
+            st.rerun()
 
     # ── Resultado por estante → prateleira ────────────────────────────────
     estante_atual = None
