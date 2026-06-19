@@ -160,7 +160,7 @@ def _badge_capa(capa_fonte: str) -> str:
 
 def _render_ficha(registro: dict) -> None:
     if st.button("← Voltar ao acervo"):
-        del st.session_state["isbn_selecionado"]
+        st.query_params.clear()
         st.rerun()
 
     st.divider()
@@ -328,13 +328,13 @@ def _dialog_editar(registro: dict) -> None:
 def _render_acervo() -> None:
     registros = _carregar()
 
-    isbn_sel = st.session_state.get("isbn_selecionado")
+    isbn_sel = st.query_params.get("book")
     if isbn_sel:
         r = next((r for r in registros if r["isbn"] == isbn_sel), None)
         if r:
             _render_ficha(r)
             return
-        del st.session_state["isbn_selecionado"]
+        st.query_params.clear()
 
     busca = st.text_input(
         "",
@@ -443,7 +443,7 @@ div[data-testid="column"] button[kind="secondary"]:hover {
                         )
                     if st.button(titulo, key=f"ficha_{r['isbn']}",
                                  use_container_width=True):
-                        st.session_state["isbn_selecionado"] = r["isbn"]
+                        st.query_params["book"] = r["isbn"]
                         st.rerun()
                     if r.get("autores"):
                         st.caption(r["autores"])
