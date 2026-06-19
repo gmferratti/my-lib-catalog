@@ -121,7 +121,8 @@ Adicionada ao menu de navegação em `ui/app.py` com ícone 📋.
 
 Na ficha individual de cada livro, adicionar seção "Lista de leitura":
 - Se o livro **não está** na lista: botão "➕ Adicionar à fila de leitura"
-- Se o livro **está na fila**: mostra status atual e, no modo edição, ações rápidas de atualização
+- Se o livro **está na lista**: mostra status atual, barra de progresso e percentual lido (`progresso_paginas / paginas × 100`), e no modo edição, ações rápidas de atualização
+- Se `paginas` for zero ou ausente, exibe apenas as páginas absolutas sem percentual
 
 ### Proteção por senha
 
