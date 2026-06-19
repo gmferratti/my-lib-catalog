@@ -395,6 +395,32 @@ def _render_acervo() -> None:
     if not filtrados:
         st.info("Nenhum livro encontrado com os filtros aplicados.")
     else:
+        st.markdown("""<style>
+div[data-testid="stImage"] img {
+    cursor: pointer;
+    border-radius: 4px;
+    transition: box-shadow 0.15s;
+}
+div[data-testid="stImage"]:hover img {
+    box-shadow: 0 0 0 3px rgba(21,101,192,0.45);
+}
+div[data-testid="column"] div[data-testid="stVerticalBlock"] {
+    position: relative;
+}
+div[data-testid="column"] button[aria-label=""],
+div[data-testid="column"] button:has(> div > p:empty) {
+    position: absolute !important;
+    top: 0 !important; left: 0 !important; right: 0 !important;
+    height: 200px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+    font-size: 0 !important;
+}
+</style>""", unsafe_allow_html=True)
+
         COLUNAS = 4
         for i in range(0, len(filtrados), COLUNAS):
             cols = st.columns(COLUNAS)
@@ -404,9 +430,12 @@ def _render_acervo() -> None:
                     break
                 r = filtrados[idx]
                 with col:
+                    if st.button("", key=f"ficha_{r['isbn']}"):
+                        st.session_state["isbn_selecionado"] = r["isbn"]
+                        st.rerun()
                     capa = r.get("capa_url", "")
                     if capa:
-                        st.image(capa, width="stretch")
+                        st.image(capa, use_container_width=True)
                     else:
                         st.markdown(
                             '<div style="height:160px;background:#eceff1;display:flex;'
@@ -423,10 +452,6 @@ def _render_acervo() -> None:
                     badge_capa = _badge_capa(r.get("capa_fonte", ""))
                     if badge_capa:
                         st.markdown(badge_capa, unsafe_allow_html=True)
-                    if st.button("📖 Ver ficha", key=f"ficha_{r['isbn']}",
-                                 use_container_width=True):
-                        st.session_state["isbn_selecionado"] = r["isbn"]
-                        st.rerun()
                     if modo_edicao:
                         if st.button("✏️ Editar", key=f"edit_{r['isbn']}",
                                      use_container_width=True):
