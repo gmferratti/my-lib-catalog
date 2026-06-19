@@ -1,7 +1,7 @@
 import json
+import os
 import threading
 from datetime import datetime
-from pathlib import Path
 
 _lock = threading.Lock()
 _LEITURA_FILE = "data/lista_leitura.json"
@@ -12,17 +12,16 @@ def _agora() -> str:
 
 
 def _carregar_raw() -> dict:
-    path = Path(_LEITURA_FILE)
-    if not path.exists():
+    try:
+        with open(_LEITURA_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, FileNotFoundError):
         return {"itens": []}
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
 
 
 def _salvar_raw(data: dict) -> None:
-    path = Path(_LEITURA_FILE)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
+    os.makedirs(os.path.dirname(_LEITURA_FILE) or ".", exist_ok=True)
+    with open(_LEITURA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
