@@ -20,6 +20,7 @@ st.title("📚 Minha Biblioteca")
 with st.sidebar:
     st.page_link("pages/acervo.py", label="📚 Acervo")
     st.page_link("pages/estantes.py", label="🗂️ Estantes")
+    st.page_link("pages/leitura.py", label="📋 Lista de Leitura")
     st.page_link("pages/sobre.py", label="📖 Sobre")
 
 livros = _carregar()

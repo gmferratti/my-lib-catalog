@@ -13,10 +13,11 @@ st.set_page_config(
 
 pg = st.navigation(
     [
-        st.Page("pages/acervo.py",   title="Acervo",   icon="📚", default=True),
-        st.Page("pages/ficha.py",    title="Ficha",     icon="📖", url_path="ficha"),
-        st.Page("pages/estantes.py", title="Estantes",  icon="🗂️"),
-        st.Page("pages/sobre.py",    title="Sobre",     icon="ℹ️"),
+        st.Page("pages/acervo.py",   title="Acervo",          icon="📚", default=True),
+        st.Page("pages/ficha.py",    title="Ficha",            icon="📖", url_path="ficha"),
+        st.Page("pages/estantes.py", title="Estantes",         icon="🗂️"),
+        st.Page("pages/leitura.py",  title="Lista de Leitura", icon="📋"),
+        st.Page("pages/sobre.py",    title="Sobre",            icon="ℹ️"),
     ],
     position="hidden",
 )
