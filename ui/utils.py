@@ -149,6 +149,13 @@ def _badge_capa(capa_fonte: str) -> str:
     )
 
 
+def _badge_etiqueta(etiqueta: str) -> str:
+    return (
+        f'<span style="background:#ede7f6;color:#6a1b9a;padding:2px 8px;'
+        f'border-radius:12px;font-size:0.75rem;font-weight:500">{etiqueta}</span>'
+    )
+
+
 def _is_autenticado() -> bool:
     return st.session_state.get("autenticado", False)
 
@@ -203,6 +210,19 @@ def _dialog_editar(registro: dict) -> None:
 
     st.divider()
 
+    todos_registros = carregar_todos_registros()
+    todas_etiquetas = sorted({
+        e.strip()
+        for r in todos_registros
+        for e in (r.get("etiquetas") or "").split(",")
+        if e.strip()
+    })
+    etiquetas_atuais = [
+        e.strip()
+        for e in (registro.get("etiquetas") or "").split(",")
+        if e.strip()
+    ]
+
     with st.form("form_edicao", border=False):
         titulo = st.text_input("Título", value=registro.get("titulo", ""))
         autores = st.text_input("Autores", value=registro.get("autores", ""),
@@ -223,6 +243,14 @@ def _dialog_editar(registro: dict) -> None:
         with c5:
             assuntos = st.text_input("Assuntos", value=registro.get("assuntos", ""),
                                      help="Separe por vírgula")
+
+        etiquetas_sel = st.multiselect(
+            "Etiquetas",
+            options=sorted(set(todas_etiquetas) | set(etiquetas_atuais)),
+            default=etiquetas_atuais,
+            accept_new_options=True,
+            help="Sua curadoria pessoal — selecione existentes ou digite novas",
+        )
 
         st.markdown("**URL da capa**")
         capa_url = st.text_input("URL da capa", value=capa_atual,
@@ -247,6 +275,7 @@ def _dialog_editar(registro: dict) -> None:
             "paginas": paginas.strip(), "idioma": idioma.strip(),
             "assuntos": assuntos.strip(), "capa_url": capa_url.strip(),
             "fonte": fonte,
+            "etiquetas": ", ".join(etiquetas_sel),
         })
         st.toast("Registro atualizado!", icon="✅")
         st.rerun()
