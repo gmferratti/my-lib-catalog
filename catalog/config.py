@@ -7,6 +7,7 @@ PENDING_FILE = "tmp/pendentes.txt"
 CAPAS_CACHE_FILE = "data/capas_cache.json"
 CAPAS_MANUAIS_FILE = "data/capas_manuais.json"
 LEITURA_FILE = "data/lista_leitura.json"
+NOTAS_FILE = "data/notas.json"
 
 CSV_HEADERS = [
     "isbn", "titulo", "autores", "editora", "ano",
