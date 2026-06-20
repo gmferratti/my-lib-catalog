@@ -110,7 +110,8 @@ def test_css_tema_light_capa_img_fundo_branco():
 
 
 def test_css_tema_light_botao_titulo_cobre_filhos():
-    """Seletor * deve garantir que elementos filhos do botão recebam a cor."""
+    """Usa .stApp .stButton > button * para cobrir filhos com especificidade (0,2,1)."""
     import ui.utils as utils
     css = utils._css_tema(dark=False)
-    assert 'button[kind="secondary"] *' in css
+    assert ".stApp .stButton > button" in css
+    assert ".stButton > button:not([data-testid" in css

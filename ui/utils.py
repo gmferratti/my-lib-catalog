@@ -29,30 +29,25 @@ def _css_tema(dark: bool) -> str:
 .badge-etiqueta { background: #2d1b4e; color: #ce93d8; }
 .capa-placeholder { background: #2d2d2d; }
 .capa-img { background: #1e1e1e; }
-div[data-testid="column"] button[kind="secondary"],
-div[data-testid="column"] button[data-testid*="secondary"],
-div[data-testid="column"] div[data-testid="stButton"] button:not([data-testid*="primary"]):not([kind="primary"]) {
+/* Botão título do card — dark mode: layout + cor clara */
+div[data-testid="stHorizontalBlock"] .stButton > button,
+div[data-testid="column"] .stButton > button,
+div[data-testid="stColumn"] .stButton > button {
     background: none !important; border: none !important; box-shadow: none !important;
     text-align: left !important; font-weight: 600 !important;
     padding: 2px 0 !important; cursor: pointer !important;
     line-height: 1.4 !important; white-space: normal !important;
     width: 100% !important; color: #fafafa !important;
 }
-div[data-testid="column"] button[kind="secondary"] *,
-div[data-testid="column"] button[data-testid*="secondary"] *,
-div[data-testid="column"] div[data-testid="stButton"] button:not([data-testid*="primary"]):not([kind="primary"]) * {
-    color: #fafafa !important;
-}
-div[data-testid="column"] button[kind="secondary"]:hover,
-div[data-testid="column"] button[data-testid*="secondary"]:hover,
-div[data-testid="column"] div[data-testid="stButton"] button:not([data-testid*="primary"]):not([kind="primary"]):hover {
-    background: none !important; box-shadow: none !important;
-}
-div[data-testid="column"] button[kind="secondary"]:hover *,
-div[data-testid="column"] button[data-testid*="secondary"]:hover *,
-div[data-testid="column"] div[data-testid="stButton"] button:not([data-testid*="primary"]):not([kind="primary"]):hover * {
-    color: #90caf9 !important;
-}
+div[data-testid="stHorizontalBlock"] .stButton > button *,
+div[data-testid="column"] .stButton > button *,
+div[data-testid="stColumn"] .stButton > button * { color: #fafafa !important; }
+div[data-testid="stHorizontalBlock"] .stButton > button:hover *,
+div[data-testid="column"] .stButton > button:hover *,
+div[data-testid="stColumn"] .stButton > button:hover * { color: #90caf9 !important; }
+div[data-testid="stHorizontalBlock"] .stButton > button:hover,
+div[data-testid="column"] .stButton > button:hover,
+div[data-testid="stColumn"] .stButton > button:hover { background: none !important; box-shadow: none !important; }
 """
     return """
 /* Variáveis CSS do Streamlit — restaura paleta light */
@@ -94,34 +89,37 @@ section[data-testid="stSidebar"] *,
 /* Expander e divider */
 [data-testid="stExpander"], [data-testid="stExpander"] * { background-color: #f0f2f6 !important; color: #31333f !important; }
 hr[data-testid="stDivider"] { border-color: #e6e9ef !important; }
-/* Colunas do grid com fundo explicitamente branco — evita vazamento do tema dark */
+/* Colunas do grid — fundo branco via stHorizontalBlock e seus filhos diretos (cobre "column" e "stColumn") */
 div[data-testid="stHorizontalBlock"],
-div[data-testid="column"] { background-color: #ffffff !important; }
-/* Botão título do card — três seletores: kind= (Streamlit antigo), data-testid= (Streamlit >=1.31), wrapper fallback */
-div[data-testid="column"] button[kind="secondary"],
-div[data-testid="column"] button[data-testid*="secondary"],
-div[data-testid="column"] div[data-testid="stButton"] button:not([data-testid*="primary"]):not([kind="primary"]) {
-    background-color: #ffffff !important; border: none !important; box-shadow: none !important;
+div[data-testid="stHorizontalBlock"] > div,
+div[data-testid="column"],
+div[data-testid="stColumn"] { background-color: #ffffff !important; }
+/* Botão título do card — light mode
+   Usa .stApp .stButton > button (especificidade 0,2,1) que supera qualquer
+   classe emotion única (0,1,0), independente de kind= ou data-testid no botão */
+.stApp .stButton > button:not([data-testid*="primary"]):not([kind="primary"]) {
+    background-color: #ffffff !important;
+    color: rgb(49,51,63) !important;
+}
+.stApp .stButton > button:not([data-testid*="primary"]):not([kind="primary"]) * {
+    color: rgb(49,51,63) !important;
+}
+/* Layout específico para os botões de título nos cards */
+div[data-testid="stHorizontalBlock"] .stButton > button,
+div[data-testid="column"] .stButton > button,
+div[data-testid="stColumn"] .stButton > button {
+    border: none !important; box-shadow: none !important;
     text-align: left !important; font-weight: 600 !important;
     padding: 2px 0 !important; cursor: pointer !important;
     line-height: 1.4 !important; white-space: normal !important;
-    width: 100% !important; color: rgb(49,51,63) !important;
+    width: 100% !important;
 }
-div[data-testid="column"] button[kind="secondary"] *,
-div[data-testid="column"] button[data-testid*="secondary"] *,
-div[data-testid="column"] div[data-testid="stButton"] button:not([data-testid*="primary"]):not([kind="primary"]) * {
-    color: rgb(49,51,63) !important;
-}
-div[data-testid="column"] button[kind="secondary"]:hover,
-div[data-testid="column"] button[data-testid*="secondary"]:hover,
-div[data-testid="column"] div[data-testid="stButton"] button:not([data-testid*="primary"]):not([kind="primary"]):hover {
-    background-color: #ffffff !important; box-shadow: none !important;
-}
-div[data-testid="column"] button[kind="secondary"]:hover *,
-div[data-testid="column"] button[data-testid*="secondary"]:hover *,
-div[data-testid="column"] div[data-testid="stButton"] button:not([data-testid*="primary"]):not([kind="primary"]):hover * {
-    color: #1565c0 !important;
-}
+div[data-testid="stHorizontalBlock"] .stButton > button:hover *,
+div[data-testid="column"] .stButton > button:hover *,
+div[data-testid="stColumn"] .stButton > button:hover * { color: #1565c0 !important; }
+div[data-testid="stHorizontalBlock"] .stButton > button:hover,
+div[data-testid="column"] .stButton > button:hover,
+div[data-testid="stColumn"] .stButton > button:hover { box-shadow: none !important; }
 /* HTML customizado */
 .badge-etiqueta { background: #ede7f6 !important; color: #6a1b9a !important; }
 .capa-placeholder { background: #eceff1 !important; }
