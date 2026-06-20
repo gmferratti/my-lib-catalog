@@ -81,12 +81,15 @@ def commit_se_houver_mudancas(mensagem: str, arquivos=None) -> bool:
         if not arquivos:
             return False
         return github_sync.commit_arquivos(list(arquivos), mensagem)
-    # git CLI local
-    _git("add", "data/")
-    if not _tem_mudancas_staged():
+    # git CLI local — pode falhar em ambientes sem git configurado (ex: Streamlit Cloud sem token)
+    try:
+        _git("add", "data/")
+        if not _tem_mudancas_staged():
+            return False
+        _git("commit", "-m", mensagem)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
-    _git("commit", "-m", mensagem)
-    return True
 
 
 def contar_commits_sessao() -> int:
