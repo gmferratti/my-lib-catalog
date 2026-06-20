@@ -3,6 +3,8 @@ import os
 import threading
 from datetime import datetime
 
+import catalog.storage.git_sync as git_sync
+
 _lock = threading.Lock()
 _LEITURA_FILE = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "data", "lista_leitura.json")
@@ -58,6 +60,7 @@ def adicionar(isbn: str) -> None:
             "data_abandono": None,
         })
         _salvar_raw(data)
+    git_sync.commit_se_houver_mudancas(f"leitura: {isbn} adicionado à fila")
 
 
 def atualizar_status(isbn: str, novo_status: str) -> None:
@@ -78,6 +81,7 @@ def atualizar_status(isbn: str, novo_status: str) -> None:
         if saiu_da_fila:
             _compactar_ordem(data["itens"])
         _salvar_raw(data)
+    git_sync.commit_se_houver_mudancas(f"leitura: {isbn} – {novo_status}")
 
 
 def atualizar_progresso(isbn: str, pagina: int) -> None:
@@ -88,6 +92,7 @@ def atualizar_progresso(isbn: str, pagina: int) -> None:
             raise ValueError(f"ISBN {isbn} não encontrado na lista de leitura")
         item["progresso_paginas"] = pagina
         _salvar_raw(data)
+    git_sync.commit_se_houver_mudancas(f"leitura: {isbn} – p. {pagina}")
 
 
 def reordenar(isbn: str, direcao: str) -> None:
@@ -113,6 +118,7 @@ def reordenar(isbn: str, direcao: str) -> None:
                 na_fila[idx]["ordem"],
             )
         _salvar_raw(data)
+    git_sync.commit_se_houver_mudancas("leitura: fila reordenada")
 
 
 def remover(isbn: str) -> None:
@@ -121,3 +127,4 @@ def remover(isbn: str) -> None:
         data["itens"] = [i for i in data["itens"] if i["isbn"] != isbn]
         _compactar_ordem(data["itens"])
         _salvar_raw(data)
+    git_sync.commit_se_houver_mudancas(f"leitura: {isbn} removido da lista")

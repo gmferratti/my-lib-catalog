@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 import catalog.reading.storage as storage
 
@@ -168,3 +170,39 @@ def test_remover_compacta_ordem():
     assert na_fila[0]["ordem"] == 1
     assert na_fila[1]["isbn"] == "9780596516178"
     assert na_fila[1]["ordem"] == 2
+
+
+def test_adicionar_commita():
+    with patch("catalog.storage.git_sync.commit_se_houver_mudancas") as mock_commit:
+        storage.adicionar("9781098115784")
+    mock_commit.assert_called_once()
+    assert "9781098115784" in mock_commit.call_args.args[0]
+
+
+def test_atualizar_progresso_commita():
+    storage.adicionar("9781098115784")
+    with patch("catalog.storage.git_sync.commit_se_houver_mudancas") as mock_commit:
+        storage.atualizar_progresso("9781098115784", 50)
+    mock_commit.assert_called_once()
+
+
+def test_atualizar_status_commita():
+    storage.adicionar("9781098115784")
+    with patch("catalog.storage.git_sync.commit_se_houver_mudancas") as mock_commit:
+        storage.atualizar_status("9781098115784", "lendo")
+    mock_commit.assert_called_once()
+
+
+def test_reordenar_commita():
+    storage.adicionar("9781098115784")
+    storage.adicionar("9780201633610")
+    with patch("catalog.storage.git_sync.commit_se_houver_mudancas") as mock_commit:
+        storage.reordenar("9781098115784", "baixo")
+    mock_commit.assert_called_once()
+
+
+def test_remover_commita():
+    storage.adicionar("9781098115784")
+    with patch("catalog.storage.git_sync.commit_se_houver_mudancas") as mock_commit:
+        storage.remover("9781098115784")
+    mock_commit.assert_called_once()
