@@ -10,12 +10,15 @@ for _k in [k for k in sys.modules if k == "catalog" or k.startswith("catalog.")]
         del sys.modules[_k]
 
 import streamlit as st
+import catalog.storage.git_sync as git_sync
 
 st.set_page_config(
     page_title="Minha Biblioteca",
     page_icon="📚",
     layout="wide",
 )
+
+git_sync.garantir_branch_sessao()
 
 pg = st.navigation(
     [
