@@ -13,7 +13,7 @@ from catalog.organizer import (
     salvar_config,
 )
 from catalog.storage import carregar_todos_registros, reescrever_registros
-from ui.utils import ESTILOS, _carregar, _carregar_config
+from ui.utils import ESTILOS, _carregar, _carregar_config, _session_bar
 
 if st.button("← Voltar ao acervo"):
     st.switch_page("pages/acervo.py")
@@ -230,3 +230,5 @@ if sem_lugar:
         titulo = livro.get("titulo") or livro.get("isbn", "—")
         autores = livro.get("autores", "")
         st.markdown(f"- {autores} — **{titulo}**" if autores else f"- **{titulo}**")
+
+_session_bar()

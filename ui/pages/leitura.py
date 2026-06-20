@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 import streamlit as st
 import catalog.reading.storage as reading_storage
 from catalog.storage import carregar_todos_registros
-from ui.utils import _dialog_login, _is_autenticado
+from ui.utils import _dialog_login, _is_autenticado, _session_bar
 
 if st.button("← Voltar ao acervo"):
     st.switch_page("pages/acervo.py")
@@ -184,3 +184,5 @@ with st.expander(f"📚 Histórico ({len(historico)} livros)"):
                 ),
             })
         st.dataframe(rows, use_container_width=True, hide_index=True)
+
+_session_bar()

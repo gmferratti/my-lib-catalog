@@ -17,6 +17,7 @@ from ui.utils import (
     _estatisticas,
     _is_autenticado,
     _normalizar,
+    _session_bar,
 )
 
 st.title("📚 Minha Biblioteca")
@@ -220,3 +221,5 @@ with st.expander("Ver tabela completa"):
                                    "data_cadastro", "capa_url"])
     else:
         st.write("Sem registros.")
+
+_session_bar()

@@ -14,6 +14,7 @@ from ui.utils import (
     _dialog_editar,
     _dialog_login,
     _is_autenticado,
+    _session_bar,
 )
 
 isbn = st.session_state.get("isbn_ficha")
@@ -162,3 +163,5 @@ with col_info:
         if st.button("🔒 Editar este livro", key=f"edit_ficha_{registro['isbn']}",
                      help="Requer senha para editar"):
             _dialog_login()
+
+_session_bar()
