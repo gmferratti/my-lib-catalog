@@ -14,6 +14,7 @@ from catalog.organizer import (
 )
 from catalog.storage import carregar_todos_registros, reescrever_registros
 from ui.utils import ESTILOS, _carregar, _carregar_config, _session_bar
+from ui.formatting import _formatar_livro
 
 if st.button("← Voltar ao acervo"):
     st.switch_page("pages/acervo.py")
@@ -37,16 +38,12 @@ def _gerar_txt(resultados: list, sem_lugar: list[dict], estilo: str) -> str:
                       f"  |  {ocupacao}/{r.capacidade} livros")
         linhas.append("-" * 60)
         for livro in r.livros:
-            titulo = livro.get("titulo") or "(sem título)"
-            autores = livro.get("autores") or "(sem autor)"
-            ano = livro.get("ano") or "—"
-            linhas.append(f"  {autores} — {titulo} ({ano})")
+            linhas.append(f"  {_formatar_livro(livro, markdown=False)}")
         linhas.append("")
     if sem_lugar:
         linhas += [f"⚠️  {len(sem_lugar)} livros sem lugar:", "-" * 60]
         for livro in sem_lugar:
-            titulo = livro.get("titulo") or livro.get("isbn", "—")
-            linhas.append(f"  {titulo}")
+            linhas.append(f"  {_formatar_livro(livro, markdown=False)}")
     return "\n".join(linhas)
 
 
@@ -219,16 +216,11 @@ for r in resultado:
             st.caption("(vazia)")
         else:
             for livro in r.livros:
-                titulo = livro.get("titulo") or "(sem título)"
-                autores = livro.get("autores") or "(sem autor)"
-                ano = f" ({livro['ano']})" if livro.get("ano") else ""
-                st.markdown(f"- {autores} — **{titulo}**{ano}")
+                st.markdown(f"- {_formatar_livro(livro)}")
 
 if sem_lugar:
     st.subheader("📦 Livros sem lugar")
     for livro in sem_lugar:
-        titulo = livro.get("titulo") or livro.get("isbn", "—")
-        autores = livro.get("autores", "")
-        st.markdown(f"- {autores} — **{titulo}**" if autores else f"- **{titulo}**")
+        st.markdown(f"- {_formatar_livro(livro)}")
 
 _session_bar()
