@@ -69,6 +69,10 @@ _IDIOMA_NORM = {
     "fr": "Francês", "fra": "Francês",
     "de": "Alemão", "deu": "Alemão", "ger": "Alemão",
     "ja": "Japonês", "jpn": "Japonês",
+    "cs": "Tcheco", "ces": "Tcheco", "cze": "Tcheco",
+    "it": "Italiano", "ita": "Italiano",
+    "ru": "Russo", "rus": "Russo",
+    "zh": "Chinês", "chi": "Chinês", "zho": "Chinês",
 }
 
 

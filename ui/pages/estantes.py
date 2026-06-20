@@ -15,6 +15,9 @@ from catalog.organizer import (
 from catalog.storage import carregar_todos_registros, reescrever_registros
 from ui.utils import ESTILOS, _carregar, _carregar_config
 
+if st.button("← Voltar ao acervo"):
+    st.switch_page("pages/acervo.py")
+
 st.title("📚 Minha Biblioteca")
 
 with st.sidebar:

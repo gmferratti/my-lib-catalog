@@ -39,7 +39,7 @@ def _eh_desconhecido(registro: dict) -> bool:
 
 # ── Ordenação ────────────────────────────────────────────────────────────────
 
-def _ordenar(livros: list[dict], estilo: str) -> list[dict]:
+def _ordenar(livros: list[dict], estilo: str, reverso: bool = False) -> list[dict]:
     conhecidos = [r for r in livros if not _eh_desconhecido(r)]
     desconhecidos = [r for r in livros if _eh_desconhecido(r)]
 
@@ -50,15 +50,15 @@ def _ordenar(livros: list[dict], estilo: str) -> list[dict]:
         conhecidos.sort(key=lambda r: (
             _sobrenome(r.get("autores", "")),
             _nome_completo(r),
-        ))
+        ), reverse=reverso)
     elif estilo == "assunto":
         conhecidos.sort(key=lambda r: (
             _assunto_principal(r.get("assuntos", "")),
             _sobrenome(r.get("autores", "")),
             _nome_completo(r),
-        ))
+        ), reverse=reverso)
     elif estilo == "ano":
-        conhecidos.sort(key=_ano_key)
+        conhecidos.sort(key=_ano_key, reverse=reverso)
 
     return conhecidos + desconhecidos
 

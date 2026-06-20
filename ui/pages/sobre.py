@@ -5,6 +5,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 import streamlit as st
 
+if st.button("← Voltar ao acervo"):
+    st.switch_page("pages/acervo.py")
+
 st.title("📚 Minha Biblioteca")
 
 col, _ = st.columns([2, 1])

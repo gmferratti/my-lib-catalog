@@ -7,6 +7,7 @@ import streamlit as st
 from catalog.organizer.algorithm import _ordenar
 from ui.utils import (
     ESTILOS,
+    _IDIOMA_NORM,
     _badge,
     _badge_capa,
     _carregar,
@@ -21,6 +22,14 @@ st.title("📚 Minha Biblioteca")
 
 registros = _carregar()
 
+_idioma_codigos_por_nome: dict[str, set[str]] = {}
+for _r in registros:
+    _cod = (_r.get("idioma") or "").strip()
+    if _cod:
+        _nome = _IDIOMA_NORM.get(_cod, _cod)
+        _idioma_codigos_por_nome.setdefault(_nome, set()).add(_cod)
+_idioma_nomes = sorted(_idioma_codigos_por_nome.keys())
+
 busca = st.text_input(
     "Busca",
     placeholder="🔍 Buscar por título ou autor...",
@@ -34,8 +43,7 @@ with st.sidebar:
     st.page_link("pages/sobre.py", label="📖 Sobre")
     st.divider()
     st.header("Filtros")
-    idiomas = sorted({r.get("idioma", "") for r in registros if r.get("idioma")})
-    idioma_sel = st.selectbox("Idioma", ["Todos"] + idiomas)
+    idioma_sel = st.selectbox("Idioma", ["Todos"] + _idioma_nomes)
     fontes_disp = sorted({r.get("fonte", "") for r in registros if r.get("fonte")})
     fonte_sel = st.selectbox("Fonte", ["Todas"] + fontes_disp)
     ocultar_sem_meta = st.checkbox("Ocultar sem metadados", value=False)
@@ -46,6 +54,13 @@ with st.sidebar:
         "Ordenar por",
         options=list(ESTILOS_ACERVO.keys()),
         format_func=lambda k: ESTILOS_ACERVO[k],
+        label_visibility="collapsed",
+    )
+    direcao = st.radio(
+        "Direção",
+        options=["asc", "desc"],
+        format_func=lambda x: "↑ Crescente" if x == "asc" else "↓ Decrescente",
+        horizontal=True,
         label_visibility="collapsed",
     )
     st.divider()
@@ -74,11 +89,16 @@ if busca:
                  if q in _normalizar(r.get("titulo", ""))
                  or q in _normalizar(r.get("autores", ""))]
 if idioma_sel != "Todos":
-    filtrados = [r for r in filtrados if r.get("idioma") == idioma_sel]
+    _codigos_sel = _idioma_codigos_por_nome.get(idioma_sel, set())
+    filtrados = [r for r in filtrados if r.get("idioma") in _codigos_sel]
 if fonte_sel != "Todas":
     filtrados = [r for r in filtrados if r.get("fonte") == fonte_sel]
-if ordem_sel != "cadastro":
-    filtrados = _ordenar(filtrados, ordem_sel)
+reverso = direcao == "desc"
+if ordem_sel == "cadastro":
+    if reverso:
+        filtrados = list(reversed(filtrados))
+else:
+    filtrados = _ordenar(filtrados, ordem_sel, reverso=reverso)
 
 stats = _estatisticas(registros)
 
@@ -129,13 +149,13 @@ div[data-testid="column"] button[kind="secondary"]:hover {
                 if capa:
                     st.markdown(
                         f'<a href="#" onclick="return false" style="display:block;cursor:pointer">'
-                        f'<img src="{capa}" style="width:100%;height:160px;object-fit:cover;'
-                        f'border-radius:4px;transition:box-shadow 0.15s" /></a>',
+                        f'<img src="{capa}" style="width:100%;height:260px;object-fit:contain;'
+                        f'background:#ffffff;border-radius:4px;transition:box-shadow 0.15s" /></a>',
                         unsafe_allow_html=True,
                     )
                 else:
                     st.markdown(
-                        '<div style="height:160px;background:#eceff1;display:flex;'
+                        '<div style="height:260px;background:#eceff1;display:flex;'
                         'align-items:center;justify-content:center;font-size:3rem;'
                         'border-radius:4px;cursor:pointer">📖</div>',
                         unsafe_allow_html=True,

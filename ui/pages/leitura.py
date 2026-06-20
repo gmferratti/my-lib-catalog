@@ -8,6 +8,9 @@ import catalog.reading.storage as reading_storage
 from catalog.storage import carregar_todos_registros
 from ui.utils import _dialog_login, _is_autenticado
 
+if st.button("← Voltar ao acervo"):
+    st.switch_page("pages/acervo.py")
+
 st.title("📋 Lista de Leitura")
 
 itens = reading_storage.carregar()
