@@ -51,10 +51,19 @@ def _tem_mudancas_staged() -> bool:
 
 
 def branch_atual() -> str:
+    from catalog.storage import github_sync
+    if github_sync.disponivel():
+        b = github_sync.branch_sessao()
+        if b:
+            return b
     return _git_output("rev-parse", "--abbrev-ref", "HEAD")
 
 
 def garantir_branch_sessao() -> str:
+    from catalog.storage import github_sync
+    if github_sync.disponivel():
+        return github_sync.garantir_branch_sessao()
+    # git CLI local
     branch = branch_atual()
     if branch.startswith("data/"):
         return branch
@@ -66,7 +75,13 @@ def garantir_branch_sessao() -> str:
     return nome
 
 
-def commit_se_houver_mudancas(mensagem: str) -> bool:
+def commit_se_houver_mudancas(mensagem: str, arquivos=None) -> bool:
+    from catalog.storage import github_sync
+    if github_sync.disponivel():
+        if not arquivos:
+            return False
+        return github_sync.commit_arquivos(list(arquivos), mensagem)
+    # git CLI local
     _git("add", "data/")
     if not _tem_mudancas_staged():
         return False
@@ -75,6 +90,9 @@ def commit_se_houver_mudancas(mensagem: str) -> bool:
 
 
 def contar_commits_sessao() -> int:
+    from catalog.storage import github_sync
+    if github_sync.disponivel():
+        return github_sync.contar_commits_sessao()
     try:
         return int(_git_output("rev-list", "main..HEAD", "--count"))
     except (subprocess.CalledProcessError, ValueError):
@@ -82,6 +100,10 @@ def contar_commits_sessao() -> int:
 
 
 def finalizar_sessao() -> str:
+    from catalog.storage import github_sync
+    if github_sync.disponivel():
+        return github_sync.finalizar_sessao()
+    # git CLI local
     n = contar_commits_sessao()
     if n == 0:
         raise ValueError("Nenhuma alteração para enviar.")

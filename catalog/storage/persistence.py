@@ -101,4 +101,4 @@ def reescrever_registros(registros: list[dict]) -> None:
         titulo = registros[0].get("titulo") or registros[0].get("isbn", "?")
     else:
         titulo = f"{len(registros)} registros"
-    git_sync.commit_se_houver_mudancas(f"edit: {titulo}")
+    git_sync.commit_se_houver_mudancas(f"edit: {titulo}", arquivos=[JSON_FILE, CSV_FILE])

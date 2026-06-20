@@ -60,7 +60,7 @@ def adicionar(isbn: str) -> None:
             "data_abandono": None,
         })
         _salvar_raw(data)
-    git_sync.commit_se_houver_mudancas(f"leitura: {isbn} adicionado à fila")
+    git_sync.commit_se_houver_mudancas(f"leitura: {isbn} adicionado à fila", arquivos=[_LEITURA_FILE])
 
 
 def atualizar_status(isbn: str, novo_status: str) -> None:
@@ -81,7 +81,7 @@ def atualizar_status(isbn: str, novo_status: str) -> None:
         if saiu_da_fila:
             _compactar_ordem(data["itens"])
         _salvar_raw(data)
-    git_sync.commit_se_houver_mudancas(f"leitura: {isbn} – {novo_status}")
+    git_sync.commit_se_houver_mudancas(f"leitura: {isbn} – {novo_status}", arquivos=[_LEITURA_FILE])
 
 
 def atualizar_progresso(isbn: str, pagina: int) -> None:
@@ -92,7 +92,7 @@ def atualizar_progresso(isbn: str, pagina: int) -> None:
             raise ValueError(f"ISBN {isbn} não encontrado na lista de leitura")
         item["progresso_paginas"] = pagina
         _salvar_raw(data)
-    git_sync.commit_se_houver_mudancas(f"leitura: {isbn} – p. {pagina}")
+    git_sync.commit_se_houver_mudancas(f"leitura: {isbn} – p. {pagina}", arquivos=[_LEITURA_FILE])
 
 
 def reordenar(isbn: str, direcao: str) -> None:
@@ -118,7 +118,7 @@ def reordenar(isbn: str, direcao: str) -> None:
                 na_fila[idx]["ordem"],
             )
         _salvar_raw(data)
-    git_sync.commit_se_houver_mudancas("leitura: fila reordenada")
+    git_sync.commit_se_houver_mudancas("leitura: fila reordenada", arquivos=[_LEITURA_FILE])
 
 
 def remover(isbn: str) -> None:
@@ -127,4 +127,4 @@ def remover(isbn: str) -> None:
         data["itens"] = [i for i in data["itens"] if i["isbn"] != isbn]
         _compactar_ordem(data["itens"])
         _salvar_raw(data)
-    git_sync.commit_se_houver_mudancas(f"leitura: {isbn} removido da lista")
+    git_sync.commit_se_houver_mudancas(f"leitura: {isbn} removido da lista", arquivos=[_LEITURA_FILE])

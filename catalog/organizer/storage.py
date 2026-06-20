@@ -14,7 +14,7 @@ def salvar_config(config: ConfigEstantes, path: str = ESTANTES_FILE) -> None:
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(asdict(config), f, ensure_ascii=False, indent=2)
-    git_sync.commit_se_houver_mudancas("estantes: configuração atualizada")
+    git_sync.commit_se_houver_mudancas("estantes: configuração atualizada", arquivos=[path])
 
 
 def carregar_config(path: str = ESTANTES_FILE) -> ConfigEstantes:

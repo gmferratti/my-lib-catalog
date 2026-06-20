@@ -307,6 +307,7 @@ def _dialog_editar(registro: dict) -> None:
 
 def _session_bar() -> None:
     import catalog.storage.git_sync as git_sync
+    import catalog.storage.github_sync as github_sync
 
     with st.sidebar:
         st.divider()
@@ -314,11 +315,19 @@ def _session_bar() -> None:
             branch = git_sync.branch_atual()
             n = git_sync.contar_commits_sessao()
         except Exception:
-            st.caption("⚠️ git indisponível")
+            if github_sync.disponivel():
+                st.caption("⚠️ GitHub sync: erro de conexão")
+            else:
+                st.caption("⚠️ git indisponível")
             return
 
         if not branch.startswith("data/"):
-            st.caption(f"⚠️ Branch: `{branch}`")
+            if github_sync.disponivel():
+                st.caption("⚠️ Sessão não inicializada — recarregue a página")
+            elif branch in ("main", "master"):
+                st.caption("🔒 Configure `GITHUB_TOKEN` nos secrets para ativar sync")
+            else:
+                st.caption(f"⚠️ Branch: `{branch}`")
             return
 
         st.caption(f"🌿 `{branch}`")

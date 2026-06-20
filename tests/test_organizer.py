@@ -247,4 +247,5 @@ def test_salvar_config_commita(tmp_path):
     path = str(tmp_path / "estantes.json")
     with patch("catalog.storage.git_sync.commit_se_houver_mudancas") as mock_commit:
         salvar_config(config, path=path)
-    mock_commit.assert_called_once_with("estantes: configuração atualizada")
+    mock_commit.assert_called_once()
+    assert mock_commit.call_args.args[0] == "estantes: configuração atualizada"
