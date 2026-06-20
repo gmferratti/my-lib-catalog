@@ -9,6 +9,7 @@ from ui.utils import (
     _IDIOMA_NORM,
     _badge,
     _badge_capa,
+    _badge_etiqueta,
     _carregar,
     _dialog_editar,
     _dialog_login,
@@ -70,6 +71,15 @@ with col_info:
 
     if registro.get("assuntos"):
         st.markdown(f"**Assuntos:** {registro['assuntos']}")
+
+    etiquetas_lista = [
+        e.strip()
+        for e in (registro.get("etiquetas") or "").split(",")
+        if e.strip()
+    ]
+    if etiquetas_lista:
+        badges_html = " ".join(_badge_etiqueta(e) for e in etiquetas_lista)
+        st.markdown(f"**Etiquetas:** {badges_html}", unsafe_allow_html=True)
 
     st.divider()
 
