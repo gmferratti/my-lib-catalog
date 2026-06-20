@@ -22,7 +22,7 @@ st.title("📚 Minha Biblioteca")
 registros = _carregar()
 
 busca = st.text_input(
-    "",
+    "Busca",
     placeholder="🔍 Buscar por título ou autor...",
     label_visibility="collapsed",
 )
