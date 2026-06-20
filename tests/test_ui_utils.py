@@ -52,3 +52,44 @@ def test_badge_etiqueta_usa_classe_css():
     assert "background:#ede7f6" not in html
     assert "color:#6a1b9a" not in html
     assert "doutorado" in html
+
+
+def test_css_tema_dark_contem_badge_escuro():
+    import ui.utils as utils
+    css = utils._css_tema(dark=True)
+    assert ".badge-etiqueta" in css
+    assert "#2d1b4e" in css
+
+
+def test_css_tema_dark_contem_capa_placeholder_escuro():
+    import ui.utils as utils
+    css = utils._css_tema(dark=True)
+    assert ".capa-placeholder" in css
+    assert "#2d2d2d" in css
+
+
+def test_css_tema_dark_contem_botao_titulo_claro():
+    import ui.utils as utils
+    css = utils._css_tema(dark=True)
+    assert "#fafafa" in css
+
+
+def test_css_tema_light_contem_badge_claro():
+    import ui.utils as utils
+    css = utils._css_tema(dark=False)
+    assert "#ede7f6" in css
+    assert "#6a1b9a" in css
+
+
+def test_css_tema_light_contem_override_stapp():
+    import ui.utils as utils
+    css = utils._css_tema(dark=False)
+    assert ".stApp" in css
+    assert "#ffffff" in css
+
+
+def test_css_tema_light_contem_sidebar():
+    import ui.utils as utils
+    css = utils._css_tema(dark=False)
+    assert "stSidebar" in css
+    assert "#f0f2f6" in css

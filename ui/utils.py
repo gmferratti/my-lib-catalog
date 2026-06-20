@@ -22,6 +22,53 @@ def _salvar_tema(tema: str) -> None:
     _PREFS_PATH.parent.mkdir(parents=True, exist_ok=True)
     _PREFS_PATH.write_text(json.dumps({"tema": tema}), encoding="utf-8")
 
+
+def _css_tema(dark: bool) -> str:
+    if dark:
+        return """
+.badge-etiqueta { background: #2d1b4e; color: #ce93d8; }
+.capa-placeholder { background: #2d2d2d; }
+div[data-testid="column"] button[kind="secondary"] {
+    background: none !important; border: none !important; box-shadow: none !important;
+    text-align: left !important; font-weight: 600 !important;
+    padding: 2px 0 !important; cursor: pointer !important;
+    line-height: 1.4 !important; white-space: normal !important;
+    color: #fafafa !important; width: 100% !important;
+}
+div[data-testid="column"] button[kind="secondary"]:hover {
+    color: #90caf9 !important; background: none !important; box-shadow: none !important;
+}
+"""
+    return """
+.badge-etiqueta { background: #ede7f6; color: #6a1b9a; }
+.capa-placeholder { background: #eceff1; }
+div[data-testid="column"] button[kind="secondary"] {
+    background: none !important; border: none !important; box-shadow: none !important;
+    text-align: left !important; font-weight: 600 !important;
+    padding: 2px 0 !important; cursor: pointer !important;
+    line-height: 1.4 !important; white-space: normal !important;
+    color: rgb(49,51,63) !important; width: 100% !important;
+}
+div[data-testid="column"] button[kind="secondary"]:hover {
+    color: #1565c0 !important; background: none !important; box-shadow: none !important;
+}
+.stApp { background-color: #ffffff !important; }
+[data-testid="stAppViewContainer"],
+[data-testid="stAppViewContainer"] > .main { background-color: #ffffff !important; }
+section[data-testid="stSidebar"],
+section[data-testid="stSidebar"] > div { background-color: #f0f2f6 !important; }
+[data-testid="metric-container"] { background-color: #f0f2f6 !important; border: 1px solid #e6e9ef !important; }
+[data-testid="stMetricValue"], [data-testid="stMetricLabel"] { color: #31333f !important; }
+.stTextInput input { background-color: #ffffff !important; color: #31333f !important; }
+[data-testid="stExpander"] { background-color: #f0f2f6 !important; }
+"""
+
+
+def _injetar_tema() -> None:
+    dark = st.session_state.get("tema", "escuro") == "escuro"
+    st.markdown(f"<style>{_css_tema(dark)}</style>", unsafe_allow_html=True)
+
+
 from catalog.organizer import (
     ConfigEstantes,
     EstanteConfig,
