@@ -279,3 +279,41 @@ def _dialog_editar(registro: dict) -> None:
         })
         st.toast("Registro atualizado!", icon="✅")
         st.rerun()
+
+
+def _session_bar() -> None:
+    import catalog.storage.git_sync as git_sync
+
+    with st.sidebar:
+        st.divider()
+        try:
+            branch = git_sync.branch_atual()
+            n = git_sync.contar_commits_sessao()
+        except Exception:
+            st.caption("⚠️ git indisponível")
+            return
+
+        if not branch.startswith("data/"):
+            st.caption(f"⚠️ Branch: `{branch}`")
+            return
+
+        st.caption(f"🌿 `{branch}`")
+        if n == 0:
+            st.caption("Sem alterações pendentes.")
+        else:
+            label = f"{n} alteraç{'ões' if n > 1 else 'ão'} pendente{'s' if n > 1 else ''}"
+            st.caption(label)
+
+        if st.button(
+            "Finalizar sessão → PR",
+            disabled=(n == 0),
+            key="btn_finalizar_sessao",
+        ):
+            try:
+                url = git_sync.finalizar_sessao()
+                st.success("PR criada com sucesso!")
+                st.link_button("Abrir PR →", url)
+            except ValueError as e:
+                st.warning(str(e))
+            except RuntimeError as e:
+                st.error(str(e))
