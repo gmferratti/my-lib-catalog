@@ -14,6 +14,7 @@ from catalog.organizer import (
     organizar,
     salvar_config,
 )
+from catalog.series import compor_titulo, detectar_serie
 from catalog.storage import carregar_todos_registros, reescrever_registros
 
 FONTE_CORES = {
@@ -223,8 +224,30 @@ def _dialog_editar(registro: dict) -> None:
         if e.strip()
     ]
 
+    # --- Bloco série (fora do form para reagir ao toggle) ---
+    serie_atual = detectar_serie(registro.get("titulo", ""))
+    is_serie = st.toggle("É parte de uma série", value=serie_atual is not None)
+
+    serie_nome = serie_atual["serie"] if serie_atual else ""
+    volume_num = serie_atual["volume"] if serie_atual else 1
+    sub_texto = serie_atual["subtitulo"] if serie_atual else ""
+
+    if is_serie:
+        cs1, cs2, cs3 = st.columns([2, 1, 3])
+        serie_nome = cs1.text_input("Série", value=serie_nome)
+        volume_num = cs2.number_input("Vol. nº", min_value=1, value=volume_num, step=1)
+        sub_texto = cs3.text_input("Subtítulo", value=sub_texto,
+                                   help="Deixe vazio se o volume não tem subtítulo")
+
+    titulo_composto = compor_titulo(serie_nome, int(volume_num), sub_texto) if is_serie else ""
+
     with st.form("form_edicao", border=False):
-        titulo = st.text_input("Título", value=registro.get("titulo", ""))
+        titulo = st.text_input(
+            "Título",
+            value=titulo_composto if is_serie else registro.get("titulo", ""),
+            disabled=is_serie,
+            help="Preenchido automaticamente pela seção de série acima" if is_serie else "",
+        )
         autores = st.text_input("Autores", value=registro.get("autores", ""),
                                 help="Separe múltiplos autores por vírgula")
 
@@ -269,8 +292,9 @@ def _dialog_editar(registro: dict) -> None:
                                           use_container_width=True)
 
     if submitted:
+        titulo_final = titulo_composto if is_serie else titulo.strip()
         _salvar_edicao(isbn, {
-            "titulo": titulo.strip(), "autores": autores.strip(),
+            "titulo": titulo_final, "autores": autores.strip(),
             "editora": editora.strip(), "ano": ano.strip(),
             "paginas": paginas.strip(), "idioma": idioma.strip(),
             "assuntos": assuntos.strip(), "capa_url": capa_url.strip(),
