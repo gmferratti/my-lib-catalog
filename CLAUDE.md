@@ -103,7 +103,7 @@ Os diretórios `data/` e `tmp/` são criados automaticamente ao importar `catalo
 | `catalog.series` | stdlib | qualquer outro módulo do projeto |
 | `catalog.organizer` | `catalog.config`, stdlib | `catalog.metadata`, `catalog.scanning` |
 | `catalog.config` | stdlib (os) | qualquer outro módulo do projeto |
-| `ui.app` | `catalog.storage`, `catalog.organizer`, `catalog.series`, streamlit | `catalog.metadata`, `catalog.scanning`, `main` |
+| `ui.app` | `catalog.storage`, `catalog.organizer`, `catalog.series`, `catalog.metadata.api`, streamlit | `catalog.metadata.worker`, `catalog.scanning`, `main` |
 | `main` | todos acima | — |
 
 ---
