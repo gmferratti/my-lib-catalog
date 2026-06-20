@@ -46,6 +46,14 @@ def remover_pendente(isbn: str) -> None:
 
 
 def salvar(registro: dict) -> None:
+    from ..series import compor_titulo, detectar_serie  # import local evita ciclo
+
+    titulo = registro.get("titulo", "")
+    if titulo:
+        detectado = detectar_serie(titulo)
+        if detectado:
+            registro = {**registro, "titulo": compor_titulo(**detectado)}
+
     with _io_lock:
         novo = not Path(CSV_FILE).exists()
         with open(CSV_FILE, "a", newline="", encoding="utf-8") as f:
