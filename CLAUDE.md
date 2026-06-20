@@ -98,7 +98,8 @@ Os diretórios `data/` e `tmp/` são criados automaticamente ao importar `catalo
 |---|---|---|
 | `catalog.scanning` | stdlib | `catalog.metadata`, `catalog.storage` |
 | `catalog.metadata` | `catalog.config`, `catalog.storage`, stdlib, requests | `catalog.scanning`, `main` |
-| `catalog.storage` | `catalog.config`, `catalog.series`, stdlib | `catalog.scanning`, `catalog.metadata` |
+| `catalog.storage` | `catalog.config`, `catalog.series`, stdlib, requests | `catalog.scanning`, `catalog.metadata` |
+| `catalog.storage.github_sync` | stdlib, requests | streamlit, qualquer outro módulo do projeto |
 | `catalog.series` | stdlib | qualquer outro módulo do projeto |
 | `catalog.organizer` | `catalog.config`, stdlib | `catalog.metadata`, `catalog.scanning` |
 | `catalog.config` | stdlib (os) | qualquer outro módulo do projeto |
@@ -131,8 +132,11 @@ pip install -e ".[ui,dev]"   # ou: pip install requests streamlit pytest pytest-
 | `ISBNDB_API_KEY` | `""` | Chave gratuita do ISBNdb. Sem ela, `buscar_isbndb` é ignorado. |
 | `GOOGLE_CUSTOM_SEARCH_KEY` | `""` | Chave do Google Cloud (Custom Search API). Ativa o Stage 7 de busca de capas. 100 queries/dia grátis. |
 | `GOOGLE_CUSTOM_SEARCH_CX` | `""` | ID do mecanismo de busca em programmablesearchengine.google.com. Requerido junto com a KEY acima. |
+| `GITHUB_TOKEN` | `""` | Personal Access Token com scope `repo`. Ativa o sync via GitHub API (obrigatório no Streamlit Cloud). |
+| `GITHUB_REPO` | `""` | `"owner/nome-do-repo"`. Requerido junto com `GITHUB_TOKEN`. |
+| `GITHUB_BRANCH` | `"main"` | Branch base para criar o branch de sessão e abrir PRs. |
 
-As chaves ficam em `.env` (já no `.gitignore`). O Makefile carrega o arquivo automaticamente via `-include .env`.
+As chaves ficam em `.env` (já no `.gitignore`). O Makefile carrega o arquivo automaticamente via `-include .env`. No Streamlit Cloud, configure em **App settings → Secrets** (ficam disponíveis como variáveis de ambiente).
 
 ---
 
@@ -178,6 +182,26 @@ O dialog de edição em `ui/utils.py` tem um toggle "É parte de uma série" que
 **Formato canônico:** `Série — Vol. N: Subtítulo` (subtítulo omitido se vazio).
 
 Para corrigir títulos existentes: `python3 scripts/migrar_series.py`.
+
+### Git Session Sync
+
+Cada sessão da UI cria um branch `data/YYYY-MM-DD` e commita as alterações conforme o usuário edita dados. Um botão "Finalizar sessão → PR" na sidebar abre a PR no GitHub.
+
+**Módulos:**
+- `catalog/storage/github_sync.py` — implementação via GitHub REST API (usada no Streamlit Cloud)
+- `catalog/storage/git_sync.py` — dispatcher: usa `github_sync` quando `GITHUB_TOKEN` está configurado, cai para `git` CLI caso contrário
+
+**API pública de `git_sync`:**
+- `garantir_branch_sessao() -> str` — cria/reutiliza branch `data/YYYY-MM-DD`
+- `commit_se_houver_mudancas(mensagem, arquivos=None) -> bool` — commita os arquivos informados (GitHub API) ou faz `git add data/ && git commit` (CLI)
+- `contar_commits_sessao() -> int` — commits à frente do branch base
+- `finalizar_sessao() -> str` — abre PR e retorna URL
+- `branch_atual() -> str` — branch ativo (sessão ou HEAD local)
+
+**Regra de integração nos módulos de storage:**
+Após cada escrita, chamar `git_sync.commit_se_houver_mudancas(mensagem, arquivos=[...])` com a lista dos arquivos modificados. Nunca chamar sem `arquivos` quando o modo GitHub API estiver ativo (sem `arquivos`, retorna `False` silenciosamente).
+
+**Fixture de teste:** `tests/conftest.py` define `mock_git_sync` com `autouse=True` que mocka `commit_se_houver_mudancas` globalmente. `tests/test_git_sync.py` sobrescreve o fixture localmente para testar a implementação real.
 
 ### Etiquetas (tags livres)
 
