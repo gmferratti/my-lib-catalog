@@ -7,6 +7,12 @@ import pytest
 import catalog.storage.git_sync as git_sync
 
 
+@pytest.fixture(autouse=True)
+def mock_git_sync():
+    """Override do fixture global — aqui testamos o git_sync real."""
+    yield
+
+
 class TestBranchAtual:
     def test_retorna_nome_do_branch(self):
         with patch.object(git_sync, "_git_output", return_value="main"):

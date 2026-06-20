@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 
 import catalog.storage.persistence as pers
@@ -48,3 +50,10 @@ def tmp_data_dir(tmp_path, monkeypatch):
     monkeypatch.setattr(cfg, "PENDING_FILE", pending_file)
 
     return {"csv": csv_file, "json": json_file, "pending": pending_file}
+
+
+@pytest.fixture(autouse=True)
+def mock_git_sync():
+    """Impede que testes rodem comandos git reais."""
+    with patch("catalog.storage.git_sync.commit_se_houver_mudancas", return_value=False):
+        yield
