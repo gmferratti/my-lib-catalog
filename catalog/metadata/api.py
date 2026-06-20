@@ -39,6 +39,22 @@ def _get_json(
     return None
 
 
+def _idioma_edicao_ol(isbn: str) -> str:
+    """Retorna o idioma da edição específica via /isbn/{isbn}.json.
+
+    O endpoint /search.json agrega idiomas de TODAS as edições da obra —
+    o que faz [:1] retornar alemão, tcheco, etc. para livros em inglês.
+    Aqui buscamos a edição exata pelo ISBN, que tem seu próprio campo languages.
+    """
+    try:
+        data = _get_json(f"https://openlibrary.org/isbn/{isbn}.json")
+        if data and data.get("languages"):
+            return data["languages"][0].get("key", "").split("/")[-1]
+    except (requests.RequestException, ValueError, KeyError, IndexError):
+        pass
+    return ""
+
+
 def buscar_open_library(isbn: str) -> dict | None:
     url = f"https://openlibrary.org/search.json?isbn={isbn}&fields=title,author_name,publisher,first_publish_year,number_of_pages_median,language,subject,cover_i"
     try:
@@ -50,13 +66,14 @@ def buscar_open_library(isbn: str) -> dict | None:
         return None
     livro = docs[0]
     cover_i = livro.get("cover_i")
+    idioma = _idioma_edicao_ol(isbn) or ", ".join(livro.get("language", [])[:1])
     return {
         "titulo": livro.get("title", ""),
         "autores": ", ".join(livro.get("author_name", [])),
         "editora": ", ".join(livro.get("publisher", [])[:1]),
         "ano": str(livro.get("first_publish_year", "")),
         "paginas": livro.get("number_of_pages_median", ""),
-        "idioma": ", ".join(livro.get("language", [])[:1]),
+        "idioma": idioma,
         "assuntos": ", ".join(livro.get("subject", [])[:5]),
         "capa_url": f"https://covers.openlibrary.org/b/id/{cover_i}-M.jpg" if cover_i else "",
         "fonte": "openlibrary",
