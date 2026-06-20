@@ -1,5 +1,6 @@
 import csv
 import json
+from unittest.mock import patch
 
 import pytest
 
@@ -102,6 +103,16 @@ def test_reescrever_registros_atualiza_csv(sample_record):
         rows = list(csv.DictReader(f))
     assert len(rows) == 1
     assert rows[0]["titulo"] == "Novo Título"
+
+
+def test_reescrever_registros_commita(sample_record):
+    salvar(sample_record)
+    atualizado = {**sample_record, "titulo": "Novo"}
+    with patch("catalog.storage.git_sync.commit_se_houver_mudancas") as mock_commit:
+        reescrever_registros([atualizado])
+    mock_commit.assert_called_once()
+    mensagem = mock_commit.call_args.args[0]
+    assert mensagem.startswith("edit:")
 
 
 def test_salvar_etiquetas(sample_record):

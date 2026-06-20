@@ -4,6 +4,7 @@ import threading
 from pathlib import Path
 
 from ..config import CAPAS_MANUAIS_FILE, CSV_FILE, CSV_HEADERS, JSON_FILE, PENDING_FILE
+from . import git_sync
 
 _io_lock = threading.Lock()
 
@@ -88,3 +89,8 @@ def reescrever_registros(registros: list[dict]) -> None:
             w.writeheader()
             for r in registros:
                 w.writerow({k: r.get(k, "") for k in CSV_HEADERS})
+    if len(registros) == 1:
+        titulo = registros[0].get("titulo") or registros[0].get("isbn", "?")
+    else:
+        titulo = f"{len(registros)} registros"
+    git_sync.commit_se_houver_mudancas(f"edit: {titulo}")
