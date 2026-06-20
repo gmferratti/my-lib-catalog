@@ -237,3 +237,14 @@ def test_config_json_valido(tmp_path):
     assert "estantes" in data
     assert len(data["estantes"]) == 2
     assert data["estantes"][0]["prateleiras"][0]["largura_cm"] == 90.0
+
+
+def test_salvar_config_commita(tmp_path):
+    from unittest.mock import patch
+    from catalog.organizer.storage import salvar_config
+    from catalog.organizer.models import ConfigEstantes
+    config = ConfigEstantes(estantes=[], espessura_media_cm=2.5)
+    path = str(tmp_path / "estantes.json")
+    with patch("catalog.storage.git_sync.commit_se_houver_mudancas") as mock_commit:
+        salvar_config(config, path=path)
+    mock_commit.assert_called_once_with("estantes: configuração atualizada")
