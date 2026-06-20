@@ -15,7 +15,7 @@ from catalog.organizer import (
     salvar_config,
 )
 from catalog.series import compor_titulo, detectar_serie
-from catalog.storage import carregar_todos_registros, reescrever_registros
+from catalog.storage import carregar_todos_registros, reescrever_registros, salvar
 
 FONTE_CORES = {
     "openlibrary":    "#2e7d32",
@@ -303,6 +303,77 @@ def _dialog_editar(registro: dict) -> None:
         })
         st.toast("Registro atualizado!", icon="✅")
         st.rerun()
+
+
+@st.dialog("➕ Adicionar livro por ISBN", width="large")
+def _dialog_adicionar() -> None:
+    preview = st.session_state.get("_isbn_add_preview")
+
+    if preview is None:
+        st.markdown("Digite o ISBN do livro. Os metadados serão buscados automaticamente nas APIs.")
+        isbn_input = st.text_input(
+            "ISBN",
+            placeholder="9788535914849",
+            help="10 ou 13 dígitos — hífens e espaços são ignorados",
+            key="_isbn_add_input",
+        )
+        if st.button("🔍 Buscar metadados", type="primary", use_container_width=True):
+            isbn_norm = "".join(c for c in (isbn_input or "") if c.isdigit())
+            if len(isbn_norm) not in (10, 13):
+                st.error("ISBN inválido — deve ter 10 ou 13 dígitos.")
+                st.stop()
+            registros = carregar_todos_registros()
+            if any(r["isbn"] == isbn_norm for r in registros):
+                st.warning(f"ISBN `{isbn_norm}` já está no acervo.")
+                st.stop()
+            with st.spinner("Buscando nas APIs…"):
+                from catalog.metadata.api import buscar_metadados
+                dados = buscar_metadados(isbn_norm)
+            st.session_state["_isbn_add_preview"] = dados
+            st.rerun()
+        return
+
+    fonte = preview.get("fonte", "")
+    if fonte == "nao_encontrado":
+        st.warning("⚠️ ISBN não encontrado nas APIs. Você pode salvar e editar os dados manualmente depois.")
+    else:
+        st.success(f"✅ Metadados encontrados via **{FONTE_LABELS.get(fonte, fonte)}**")
+
+    col_capa, col_info = st.columns([1, 3])
+    with col_capa:
+        capa_url = preview.get("capa_url", "")
+        if capa_url:
+            st.image(capa_url, width=120)
+        else:
+            st.markdown(
+                '<div style="height:160px;background:#eceff1;display:flex;align-items:center;'
+                'justify-content:center;font-size:2.5rem;border-radius:8px">📖</div>',
+                unsafe_allow_html=True,
+            )
+    with col_info:
+        st.markdown(f"**{preview.get('titulo') or '(sem título)'}**")
+        if preview.get("autores"):
+            st.markdown(preview["autores"])
+        partes = [p for p in [preview.get("ano"), preview.get("editora")] if p]
+        if partes:
+            st.caption(" · ".join(partes))
+        if preview.get("assuntos"):
+            st.caption(f"📌 {preview['assuntos']}")
+        st.caption(f"ISBN: `{preview['isbn']}`")
+
+    st.divider()
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("✅ Confirmar e salvar", type="primary", use_container_width=True):
+            salvar(preview)
+            st.cache_data.clear()
+            del st.session_state["_isbn_add_preview"]
+            st.toast("Livro adicionado ao acervo!", icon="✅")
+            st.rerun()
+    with col2:
+        if st.button("↩️ Buscar outro ISBN", use_container_width=True):
+            del st.session_state["_isbn_add_preview"]
+            st.rerun()
 
 
 def _session_bar() -> None:

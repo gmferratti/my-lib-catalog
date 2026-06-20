@@ -12,6 +12,7 @@ from ui.utils import (
     _badge_capa,
     _badge_etiqueta,
     _carregar,
+    _dialog_adicionar,
     _dialog_editar,
     _dialog_login,
     _estatisticas,
@@ -80,6 +81,9 @@ with st.sidebar:
     if _is_autenticado():
         modo_edicao = st.toggle("✏️ Modo edição", value=False,
                                 help="Exibe botão de edição em cada card")
+        if st.button("➕ Adicionar livro", use_container_width=True,
+                     help="Cadastrar novo livro por ISBN"):
+            _dialog_adicionar()
         if st.button("🔓 Sair do modo edição", use_container_width=True):
             st.session_state["autenticado"] = False
             st.rerun()
