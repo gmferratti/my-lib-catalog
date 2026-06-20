@@ -20,6 +20,53 @@
           "largura_cm": 80.0
         }
       ]
+    },
+    {
+      "nome": "Estante 2",
+      "prateleiras": [
+        {
+          "nome": "A",
+          "largura_cm": 80.0
+        },
+        {
+          "nome": "B",
+          "largura_cm": 80.0
+        },
+        {
+          "nome": "C",
+          "largura_cm": 80.0
+        }
+      ]
+    },
+    {
+      "nome": "Prateleira 1",
+      "prateleiras": [
+        {
+          "nome": "A",
+          "largura_cm": 80.0
+        },
+        {
+          "nome": "B",
+          "largura_cm": 80.0
+        },
+        {
+          "nome": "C",
+          "largura_cm": 80.0
+        }
+      ]
+    },
+    {
+      "nome": "Estante 4",
+      "prateleiras": [
+        {
+          "nome": "A",
+          "largura_cm": 80.0
+        },
+        {
+          "nome": "B",
+          "largura_cm": 80.0
+        }
+      ]
     }
   ],
   "espessura_media_cm": 2.5
