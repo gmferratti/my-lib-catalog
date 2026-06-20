@@ -243,6 +243,7 @@ def _mock_head(mocker, status=200, content_length=None):
 def _reset_cache(mocker):
     mocker.patch.object(api_module, "_capas_cache", {})
     mocker.patch("catalog.metadata.api._salvar_cache")
+    mocker.patch.object(api_module, "_carregar_capas_manuais", return_value={})
 
 
 def test_buscar_capa_ol_happy_path(mocker):

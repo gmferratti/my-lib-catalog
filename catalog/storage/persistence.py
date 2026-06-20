@@ -3,7 +3,7 @@ import json
 import threading
 from pathlib import Path
 
-from ..config import CSV_FILE, CSV_HEADERS, JSON_FILE, PENDING_FILE
+from ..config import CAPAS_MANUAIS_FILE, CSV_FILE, CSV_HEADERS, JSON_FILE, PENDING_FILE
 
 _io_lock = threading.Lock()
 
@@ -56,11 +56,26 @@ def salvar(registro: dict) -> None:
             f.write(json.dumps(registro, ensure_ascii=False) + "\n")
 
 
+def _capas_manuais() -> dict:
+    try:
+        return json.loads(Path(CAPAS_MANUAIS_FILE).read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
 def carregar_todos_registros() -> list[dict]:
     if not Path(JSON_FILE).exists():
         return []
     with open(JSON_FILE, encoding="utf-8") as f:
-        return [json.loads(linha) for linha in f if linha.strip()]
+        registros = [json.loads(linha) for linha in f if linha.strip()]
+    manuais = _capas_manuais()
+    if manuais:
+        for r in registros:
+            url = manuais.get(r.get("isbn", ""))
+            if url:
+                r["capa_url"] = url
+                r["capa_fonte"] = "manual"
+    return registros
 
 
 def reescrever_registros(registros: list[dict]) -> None:
