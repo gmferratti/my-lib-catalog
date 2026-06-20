@@ -15,10 +15,13 @@ from ui.utils import (
     _dialog_editar,
     _dialog_login,
     _dialog_notas,
+    _injetar_tema,
     _is_autenticado,
     _session_bar,
+    _sidebar_tema,
 )
 
+_injetar_tema()
 isbn = st.session_state.get("isbn_ficha")
 if not isbn:
     st.switch_page("pages/acervo.py")
@@ -43,7 +46,7 @@ with col_capa:
         st.image(capa, width=200)
     else:
         st.markdown(
-            '<div style="height:280px;background:#eceff1;display:flex;'
+            '<div class="capa-placeholder" style="height:280px;display:flex;'
             'align-items:center;justify-content:center;font-size:4rem;'
             'border-radius:8px">📖</div>',
             unsafe_allow_html=True,
@@ -187,3 +190,4 @@ with col_info:
             _dialog_login()
 
 _session_bar()
+_sidebar_tema()
