@@ -16,11 +16,14 @@ from ui.utils import (
     _dialog_editar,
     _dialog_login,
     _estatisticas,
+    _injetar_tema,
     _is_autenticado,
     _normalizar,
     _session_bar,
+    _sidebar_tema,
 )
 
+_injetar_tema()
 st.title("📚 Minha Biblioteca")
 
 registros = _carregar()
@@ -136,27 +139,6 @@ st.divider()
 if not filtrados:
     st.info("Nenhum livro encontrado com os filtros aplicados.")
 else:
-    st.markdown("""<style>
-div[data-testid="column"] button[kind="secondary"] {
-    background: none !important;
-    border: none !important;
-    box-shadow: none !important;
-    text-align: left !important;
-    font-weight: 600 !important;
-    padding: 2px 0 !important;
-    cursor: pointer !important;
-    line-height: 1.4 !important;
-    white-space: normal !important;
-    color: rgb(49,51,63) !important;
-    width: 100% !important;
-}
-div[data-testid="column"] button[kind="secondary"]:hover {
-    color: #1565c0 !important;
-    background: none !important;
-    box-shadow: none !important;
-}
-</style>""", unsafe_allow_html=True)
-
     COLUNAS = 4
     for i in range(0, len(filtrados), COLUNAS):
         cols = st.columns(COLUNAS)
@@ -177,7 +159,7 @@ div[data-testid="column"] button[kind="secondary"]:hover {
                     )
                 else:
                     st.markdown(
-                        '<div style="height:260px;background:#eceff1;display:flex;'
+                        '<div class="capa-placeholder" style="height:260px;display:flex;'
                         'align-items:center;justify-content:center;font-size:3rem;'
                         'border-radius:4px;cursor:pointer">📖</div>',
                         unsafe_allow_html=True,
@@ -227,3 +209,4 @@ with st.expander("Ver tabela completa"):
         st.write("Sem registros.")
 
 _session_bar()
+_sidebar_tema()
