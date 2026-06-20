@@ -10,6 +10,7 @@ from ui.utils import (
     _IDIOMA_NORM,
     _badge,
     _badge_capa,
+    _badge_etiqueta,
     _carregar,
     _dialog_editar,
     _dialog_login,
@@ -30,6 +31,13 @@ for _r in registros:
         _idioma_codigos_por_nome.setdefault(_nome, set()).add(_cod)
 _idioma_nomes = sorted(_idioma_codigos_por_nome.keys())
 
+_todas_etiquetas_acervo = sorted({
+    e.strip()
+    for r in registros
+    for e in (r.get("etiquetas") or "").split(",")
+    if e.strip()
+})
+
 busca = st.text_input(
     "Busca",
     placeholder="🔍 Buscar por título ou autor...",
@@ -47,6 +55,10 @@ with st.sidebar:
     fontes_disp = sorted({r.get("fonte", "") for r in registros if r.get("fonte")})
     fonte_sel = st.selectbox("Fonte", ["Todas"] + fontes_disp)
     ocultar_sem_meta = st.checkbox("Ocultar sem metadados", value=False)
+    if _todas_etiquetas_acervo:
+        etiquetas_sel = st.multiselect("🏷️ Etiquetas", options=_todas_etiquetas_acervo)
+    else:
+        etiquetas_sel = []
     st.divider()
     st.subheader("Ordenação")
     ESTILOS_ACERVO = {"cadastro": "Ordem de cadastro"} | ESTILOS
@@ -93,6 +105,11 @@ if idioma_sel != "Todos":
     filtrados = [r for r in filtrados if r.get("idioma") in _codigos_sel]
 if fonte_sel != "Todas":
     filtrados = [r for r in filtrados if r.get("fonte") == fonte_sel]
+if etiquetas_sel:
+    def _tem_todas(r: dict) -> bool:
+        tags_livro = {e.strip() for e in (r.get("etiquetas") or "").split(",") if e.strip()}
+        return all(e in tags_livro for e in etiquetas_sel)
+    filtrados = [r for r in filtrados if _tem_todas(r)]
 reverso = direcao == "desc"
 if ordem_sel == "cadastro":
     if reverso:
@@ -171,6 +188,22 @@ div[data-testid="column"] button[kind="secondary"]:hover {
                 badge_capa = _badge_capa(r.get("capa_fonte", ""))
                 if badge_capa:
                     st.markdown(badge_capa, unsafe_allow_html=True)
+                etiquetas_lista = [
+                    e.strip()
+                    for e in (r.get("etiquetas") or "").split(",")
+                    if e.strip()
+                ]
+                if etiquetas_lista:
+                    visiveis = etiquetas_lista[:3]
+                    extra = len(etiquetas_lista) - 3
+                    badges_html = " ".join(_badge_etiqueta(e) for e in visiveis)
+                    if extra > 0:
+                        badges_html += (
+                            f' <span style="background:#f3e5f5;color:#9c27b0;'
+                            f'padding:2px 8px;border-radius:12px;font-size:0.75rem">'
+                            f'+{extra}</span>'
+                        )
+                    st.markdown(badges_html, unsafe_allow_html=True)
                 if modo_edicao:
                     if st.button("✏️ Editar", key=f"edit_{r['isbn']}",
                                  type="primary",
