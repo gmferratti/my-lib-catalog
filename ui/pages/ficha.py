@@ -5,6 +5,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 import streamlit as st
 import catalog.reading.storage as reading_storage
+import catalog.notas as notas
 from ui.utils import (
     _IDIOMA_NORM,
     _badge,
@@ -13,6 +14,7 @@ from ui.utils import (
     _carregar,
     _dialog_editar,
     _dialog_login,
+    _dialog_notas,
     _is_autenticado,
     _session_bar,
 )
@@ -152,6 +154,26 @@ with col_info:
             if st.button("💾 Salvar progresso", key=f"salvar_ficha_{isbn}"):
                 reading_storage.atualizar_progresso(isbn, nova_pagina)
                 st.rerun()
+
+    st.divider()
+    st.markdown("**📝 Anotações**")
+
+    nota = notas.carregar(isbn)
+
+    if nota and (nota.get("anotacao") or nota.get("links")):
+        if nota.get("anotacao"):
+            st.markdown(nota["anotacao"])
+        for link in nota.get("links", []):
+            rotulo = link.get("rotulo") or link["url"][:60]
+            st.link_button(rotulo, link["url"])
+    else:
+        st.caption("Nenhuma anotação ainda.")
+
+    if _is_autenticado():
+        if st.button("✏️ Editar anotações", key=f"btn_notas_{isbn}"):
+            _dialog_notas(isbn, nota)
+    else:
+        st.caption("🔒 Faça login para adicionar anotações.")
 
     st.divider()
 
