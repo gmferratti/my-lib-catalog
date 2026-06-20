@@ -102,3 +102,18 @@ def test_reescrever_registros_atualiza_csv(sample_record):
         rows = list(csv.DictReader(f))
     assert len(rows) == 1
     assert rows[0]["titulo"] == "Novo Título"
+
+
+def test_salvar_etiquetas(sample_record):
+    registro = {**sample_record, "etiquetas": "lazer, doutorado"}
+    salvar(registro)
+
+    # JSONL roundtrip
+    registros = carregar_todos_registros()
+    assert registros[0].get("etiquetas") == "lazer, doutorado"
+
+    # CSV deve ter coluna etiquetas
+    with open(pers.CSV_FILE, newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    assert "etiquetas" in rows[0], "coluna etiquetas ausente no CSV"
+    assert rows[0]["etiquetas"] == "lazer, doutorado"

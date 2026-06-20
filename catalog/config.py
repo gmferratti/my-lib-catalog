@@ -11,7 +11,7 @@ LEITURA_FILE = "data/lista_leitura.json"
 CSV_HEADERS = [
     "isbn", "titulo", "autores", "editora", "ano",
     "paginas", "idioma", "assuntos", "capa_url", "capa_fonte", "fonte", "data_cadastro",
-    "estante", "prateleira",
+    "estante", "prateleira", "etiquetas",
 ]
 
 # Chave gratuita em https://console.cloud.google.com/ (Books API, 1000 req/dia).
