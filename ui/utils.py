@@ -69,6 +69,23 @@ def _injetar_tema() -> None:
     st.markdown(f"<style>{_css_tema(dark)}</style>", unsafe_allow_html=True)
 
 
+def _sidebar_tema() -> None:
+    if "tema" not in st.session_state:
+        st.session_state["tema"] = _ler_tema()
+    with st.sidebar:
+        st.divider()
+        claro = st.toggle(
+            "☀️ Modo claro",
+            value=st.session_state["tema"] == "claro",
+            key="toggle_tema",
+        )
+        novo = "claro" if claro else "escuro"
+        if novo != st.session_state["tema"]:
+            st.session_state["tema"] = novo
+            _salvar_tema(novo)
+            st.rerun()
+
+
 from catalog.organizer import (
     ConfigEstantes,
     EstanteConfig,
@@ -79,6 +96,7 @@ from catalog.organizer import (
 )
 from catalog.series import compor_titulo, detectar_serie
 from catalog.storage import carregar_todos_registros, reescrever_registros, salvar
+import catalog.notas as notas
 
 FONTE_CORES = {
     "openlibrary":    "#2e7d32",
@@ -437,6 +455,59 @@ def _dialog_adicionar() -> None:
         if st.button("↩️ Buscar outro ISBN", use_container_width=True):
             del st.session_state["_isbn_add_preview"]
             st.rerun()
+
+
+@st.dialog("📝 Editar anotações", width="large")
+def _dialog_notas(isbn: str, nota_atual: dict | None) -> None:
+    key = f"notas_links_{isbn}"
+    if key not in st.session_state:
+        st.session_state[key] = [dict(l) for l in (nota_atual or {}).get("links", [])]
+
+    anotacao = st.text_area(
+        "Anotação",
+        value=(nota_atual or {}).get("anotacao", ""),
+        height=200,
+        key=f"{key}_anotacao",
+        placeholder="Escreva sua resenha ou anotações sobre o livro...",
+    )
+
+    st.markdown("**Links externos**")
+    indices_remover = []
+    for i, link in enumerate(st.session_state[key]):
+        c1, c2, c3 = st.columns([3, 2, 1])
+        link["url"] = c1.text_input(
+            "URL",
+            value=link.get("url", ""),
+            key=f"{key}_url_{i}",
+            label_visibility="collapsed",
+            placeholder="https://...",
+        )
+        link["rotulo"] = c2.text_input(
+            "Rótulo",
+            value=link.get("rotulo", ""),
+            key=f"{key}_rot_{i}",
+            label_visibility="collapsed",
+            placeholder="Rótulo (opcional)",
+        )
+        if c3.button("✕", key=f"{key}_rm_{i}"):
+            indices_remover.append(i)
+
+    for i in reversed(indices_remover):
+        st.session_state[key].pop(i)
+        st.rerun()
+
+    if st.button("＋ Adicionar link"):
+        st.session_state[key].append({"url": "", "rotulo": ""})
+        st.rerun()
+
+    st.divider()
+    if st.button("💾 Salvar", type="primary", use_container_width=True):
+        links_validos = [
+            l for l in st.session_state[key] if l.get("url", "").strip()
+        ]
+        notas.salvar(isbn, anotacao, links_validos)
+        del st.session_state[key]
+        st.rerun()
 
 
 def _session_bar() -> None:
