@@ -63,6 +63,7 @@ ui/app.py  (Streamlit — processo separado)
 | `data/biblioteca.csv` | Planilha; abre direto no Excel/LibreOffice |
 | `data/biblioteca.jsonl` | JSON Lines; fonte de verdade para a UI e para `reprocessar` |
 | `data/estantes.json` | Configuração persistida das estantes (num estantes, prateleiras, largura_cm, espessura_media_cm) |
+| `data/notas.json` | Anotações e links externos por livro, indexados por ISBN; gerenciado por `catalog.notas` |
 | `tmp/pendentes.txt` | Fila durável; ISBNs enfileirados mas não processados; recarregado na próxima sessão |
 
 Os diretórios `data/` e `tmp/` são criados automaticamente ao importar `catalog.storage`.
@@ -103,7 +104,8 @@ Os diretórios `data/` e `tmp/` são criados automaticamente ao importar `catalo
 | `catalog.series` | stdlib | qualquer outro módulo do projeto |
 | `catalog.organizer` | `catalog.config`, stdlib | `catalog.metadata`, `catalog.scanning` |
 | `catalog.config` | stdlib (os) | qualquer outro módulo do projeto |
-| `ui.app` | `catalog.storage`, `catalog.organizer`, `catalog.series`, `catalog.metadata.api`, streamlit | `catalog.metadata.worker`, `catalog.scanning`, `main` |
+| `catalog.notas` | `catalog.config`, `catalog.storage.git_sync`, stdlib | `catalog.scanning`, `catalog.metadata`, `catalog.reading`, `main` |
+| `ui.app` | `catalog.storage`, `catalog.organizer`, `catalog.series`, `catalog.notas`, `catalog.metadata.api`, streamlit | `catalog.metadata.worker`, `catalog.scanning`, `main` |
 | `main` | todos acima | — |
 
 ---
