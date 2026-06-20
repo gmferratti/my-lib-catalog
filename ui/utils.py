@@ -1,3 +1,4 @@
+import json
 import sys
 import unicodedata
 from pathlib import Path
@@ -5,6 +6,21 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import streamlit as st
+
+_PREFS_PATH = Path(__file__).parent.parent / ".streamlit" / "ui_prefs.json"
+
+
+def _ler_tema() -> str:
+    try:
+        data = json.loads(_PREFS_PATH.read_text(encoding="utf-8"))
+        return data.get("tema", "escuro")
+    except (FileNotFoundError, json.JSONDecodeError):
+        return "escuro"
+
+
+def _salvar_tema(tema: str) -> None:
+    _PREFS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _PREFS_PATH.write_text(json.dumps({"tema": tema}), encoding="utf-8")
 
 from catalog.organizer import (
     ConfigEstantes,
@@ -152,7 +168,7 @@ def _badge_capa(capa_fonte: str) -> str:
 
 def _badge_etiqueta(etiqueta: str) -> str:
     return (
-        f'<span style="background:#ede7f6;color:#6a1b9a;padding:2px 8px;'
+        f'<span class="badge-etiqueta" style="padding:2px 8px;'
         f'border-radius:12px;font-size:0.75rem;font-weight:500">{etiqueta}</span>'
     )
 
