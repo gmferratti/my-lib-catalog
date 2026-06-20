@@ -13,9 +13,10 @@ from catalog.organizer import (
     salvar_config,
 )
 from catalog.storage import carregar_todos_registros, reescrever_registros
-from ui.utils import ESTILOS, _carregar, _carregar_config, _session_bar
+from ui.utils import ESTILOS, _carregar, _carregar_config, _injetar_tema, _session_bar, _sidebar_tema
 from ui.formatting import _formatar_livro
 
+_injetar_tema()
 if st.button("← Voltar ao acervo"):
     st.switch_page("pages/acervo.py")
 
@@ -304,3 +305,4 @@ if sem_lugar:
         st.markdown(f"- {_formatar_livro(livro)}")
 
 _session_bar()
+_sidebar_tema()

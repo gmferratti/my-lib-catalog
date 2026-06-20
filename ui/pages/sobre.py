@@ -4,7 +4,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 import streamlit as st
+from ui.utils import _injetar_tema, _sidebar_tema
 
+_injetar_tema()
 if st.button("← Voltar ao acervo"):
     st.switch_page("pages/acervo.py")
 
@@ -33,3 +35,5 @@ idioma, etc. Se algo não vier certo, há a possibilidade de ajuste manual.
 desenvolvimento. Em breve você poderá distribuir seus livros pelas prateleiras de
 forma otimizada.
 """)
+
+_sidebar_tema()
