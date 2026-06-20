@@ -80,69 +80,103 @@ if "estante_draft" not in st.session_state:
     st.session_state["espessura_draft"] = _cfg_init.espessura_media_cm
 
 with st.expander("⚙️ Configurar estantes", expanded=not bool(st.session_state["estante_draft"])):
-    cfg_atual = _carregar_config()
+    st.number_input(
+        "Espessura média dos livros (cm)", min_value=0.5, max_value=10.0,
+        value=float(st.session_state.get("espessura_draft", 2.5)),
+        step=0.5, key="espessura_editor",
+        help="Usada para estimar quantos livros cabem em cada prateleira.",
+    )
 
-    with st.form("form_config_estantes"):
-        c1, c2, c3, c4 = st.columns(4)
-        with c1:
-            num_estantes = st.number_input(
-                "Número de estantes", min_value=1, max_value=20,
-                value=max(1, len(cfg_atual.estantes)),
-                step=1,
-            )
-        with c2:
-            prat_por_estante = st.number_input(
-                "Prateleiras por estante", min_value=1, max_value=30,
-                value=max(1, len(cfg_atual.estantes[0].prateleiras)
-                          if cfg_atual.estantes else 4),
-                step=1,
-            )
-        with c3:
-            largura_cm = st.number_input(
-                "Largura de cada prateleira (cm)", min_value=10.0, max_value=300.0,
-                value=float(cfg_atual.estantes[0].prateleiras[0].largura_cm
-                            if cfg_atual.estantes and cfg_atual.estantes[0].prateleiras
-                            else 80.0),
-                step=5.0,
-            )
-        with c4:
-            espessura_cm = st.number_input(
-                "Espessura média dos livros (cm)", min_value=0.5, max_value=10.0,
-                value=float(cfg_atual.espessura_media_cm),
-                step=0.5,
-                help="Espessura média da lombada. Padrão: 2,5 cm.",
-            )
-
-        cap_prat = max(1, int(largura_cm / espessura_cm))
-        cap_total_prev = int(num_estantes) * int(prat_por_estante) * cap_prat
-        num_prat_total = int(num_estantes) * int(prat_por_estante)
-        st.caption(
-            f"Capacidade estimada: **{cap_prat} livros/prateleira** · "
-            f"**{num_prat_total} prateleiras** · "
-            f"**{cap_total_prev} livros no total**"
+    for i, estante in enumerate(st.session_state["estante_draft"]):
+        st.markdown(f"---\n**🗄️ Estante {i + 1}**")
+        st.text_input(
+            "Nome da estante", value=estante["nome"],
+            key=f"est_{i}_nome", label_visibility="collapsed",
+            placeholder="Nome da estante",
         )
 
-        salvar = st.form_submit_button("💾 Salvar configuração", type="primary")
+        for j, prat in enumerate(estante["prateleiras"]):
+            c1, c2, c3 = st.columns([2, 4, 1])
+            c1.text_input(
+                "Nome", value=prat["nome"],
+                key=f"prat_{i}_{j}_nome", label_visibility="collapsed",
+                placeholder="Nome",
+            )
+            c2.number_input(
+                "Largura (cm)", min_value=10.0, max_value=500.0, step=5.0,
+                value=float(prat["largura_cm"]),
+                key=f"prat_{i}_{j}_largura", label_visibility="collapsed",
+            )
+            if c3.button("🗑️", key=f"del_prat_{i}_{j}", help="Remover prateleira"):
+                _sync_draft()
+                estante["prateleiras"].pop(j)
+                _clear_widget_keys()
+                st.rerun()
 
-    if salvar:
-        letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        col_add_p, col_del_e = st.columns([3, 2])
+        if col_add_p.button("+ Prateleira", key=f"add_prat_{i}"):
+            _sync_draft()
+            letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            n = len(estante["prateleiras"])
+            nome_prat = (
+                letras[n % 26] if n < 26
+                else f"{letras[(n // 26) - 1]}{letras[n % 26]}"
+            )
+            estante["prateleiras"].append({"nome": nome_prat, "largura_cm": 80.0})
+            _clear_widget_keys()
+            st.rerun()
+        if col_del_e.button("🗑️ Remover estante", key=f"del_est_{i}", type="secondary"):
+            _sync_draft()
+            st.session_state["estante_draft"].pop(i)
+            _clear_widget_keys()
+            st.rerun()
+
+        espessura_val = float(st.session_state.get("espessura_editor", 2.5))
+        cap_est = sum(
+            max(1, int(
+                float(st.session_state.get(f"prat_{i}_{j}_largura", p["largura_cm"]))
+                / espessura_val
+            ))
+            for j, p in enumerate(estante["prateleiras"])
+        )
+        st.caption(
+            f"Capacidade estimada: **{cap_est} livros** "
+            f"({len(estante['prateleiras'])} prateleiras)"
+        )
+
+    st.divider()
+    col_add_e, col_save = st.columns([1, 1])
+    if col_add_e.button("+ Adicionar estante", key="add_estante"):
+        _sync_draft()
+        n = len(st.session_state["estante_draft"])
+        st.session_state["estante_draft"].append({
+            "nome": f"Estante {n + 1}",
+            "prateleiras": [{"nome": "A", "largura_cm": 80.0}],
+        })
+        _clear_widget_keys()
+        st.rerun()
+
+    if col_save.button("💾 Salvar configuração", type="primary", key="salvar_estantes"):
+        _sync_draft()
         nova_cfg = ConfigEstantes(
-            espessura_media_cm=float(espessura_cm),
+            espessura_media_cm=float(st.session_state.get("espessura_editor", 2.5)),
             estantes=[
                 EstanteConfig(
-                    nome=f"Estante {i + 1}",
+                    nome=e["nome"],
                     prateleiras=[
                         PrateleiraConfig(
-                            nome=letras[j % 26] if j < 26 else f"{letras[(j // 26) - 1]}{letras[j % 26]}",
-                            largura_cm=float(largura_cm),
+                            nome=p["nome"],
+                            largura_cm=float(p["largura_cm"]),
                         )
-                        for j in range(int(prat_por_estante))
+                        for p in e["prateleiras"]
                     ],
                 )
-                for i in range(int(num_estantes))
+                for e in st.session_state["estante_draft"]
             ],
         )
         salvar_config(nova_cfg)
+        del st.session_state["estante_draft"]
+        _clear_widget_keys()
         st.cache_data.clear()
         st.toast("Configuração salva!", icon="✅")
         st.rerun()
