@@ -1,2 +1,3 @@
-- ⚠️ Sessão não inicializada — recarregue a página (na lista de leitura)
-- Refatoração do código seguindo boas práticas de clean code e clean architecture once is done.
+- Refatoração do código seguindo boas práticas de clean code e clean architecture once is done
+- No caso de prateleira, mudar o ícone. Dar opção de prateleira e nicho
+- Ferramenta de crop para as capas para não sair fundo branco no dark mode.

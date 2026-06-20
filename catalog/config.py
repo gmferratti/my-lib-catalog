@@ -6,6 +6,7 @@ JSON_FILE = "data/biblioteca.jsonl"
 PENDING_FILE = "tmp/pendentes.txt"
 CAPAS_CACHE_FILE = "data/capas_cache.json"
 CAPAS_MANUAIS_FILE = "data/capas_manuais.json"
+CONFIG_APIS_FILE = "data/config_apis.json"
 LEITURA_FILE = "data/lista_leitura.json"
 NOTAS_FILE = "data/notas.json"
 

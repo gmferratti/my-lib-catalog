@@ -7,10 +7,34 @@ from pathlib import Path
 import requests
 
 from ..config import (
-    CAPAS_CACHE_FILE, CAPAS_MANUAIS_FILE, CSV_HEADERS,
+    CAPAS_CACHE_FILE, CAPAS_MANUAIS_FILE, CONFIG_APIS_FILE, CSV_HEADERS,
     GOOGLE_BOOKS_API_KEY, GOOGLE_CUSTOM_SEARCH_KEY, GOOGLE_CUSTOM_SEARCH_CX,
     ISBNDB_API_KEY,
 )
+
+# Fontes disponíveis: (id, rótulo, descrição)
+FONTES_METADADOS: list[tuple[str, str, str]] = [
+    ("brasilapi",          "BrasilAPI",                       "Agrega CBL e fontes brasileiras; gratuita, sem autenticação"),
+    ("openlibrary",        "Open Library",                    "Base aberta do Internet Archive; gratuita, sem autenticação"),
+    ("googlebooks",        "Google Books",                    "Ampla cobertura; usa GOOGLE_BOOKS_API_KEY quando configurada"),
+    ("isbndb",             "ISBNdb",                          "Inclui editoras brasileiras; requer ISBNDB_API_KEY gratuita"),
+    ("openlibrary_edicao", "Open Library — edição específica","Data da edição concreta pelo ISBN; útil para traduções"),
+]
+
+FONTES_CAPAS: list[tuple[str, str, str]] = [
+    ("openlibrary_isbn",    "Open Library por ISBN",         "Busca direta pela imagem indexada ao ISBN"),
+    ("openlibrary_cover_i", "Open Library por cover_id",     "Cobertura maior que a busca direta por ISBN"),
+    ("googlebooks_isbn",    "Google Books por ISBN",          "Thumbnail do Google Books para o ISBN específico"),
+    ("googlebooks_titulo",  "Google Books por título/autor",  "Fallback quando ISBN não está indexado"),
+    ("openlibrary_titulo",  "Open Library por título/autor",  "Fallback quando ISBN não está indexado no OL"),
+    ("duckduckgo",          "DuckDuckGo",                    "Busca de imagens informal; sem chave, sem dependências"),
+    ("google_cse",          "Google Custom Search",           "Requer GOOGLE_CUSTOM_SEARCH_KEY e CX; 100 queries/dia grátis"),
+]
+
+_DEFAULTS_APIS = {
+    "metadados": [f for f, _, _ in FONTES_METADADOS],
+    "capas":     [f for f, _, _ in FONTES_CAPAS],
+}
 
 
 def _get_json(
@@ -328,62 +352,67 @@ def _capa_google_cse(isbn: str, titulo: str = "", autores: str = "") -> str:
 
 
 def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> tuple[str, str]:
+    hab = set(carregar_config_apis()["capas"])
+
     # Estágio 1 — Open Library por ISBN (Large depois Medium)
     # ?default=false faz o OL retornar 404 em vez de redirecionar para placeholder;
     # por isso allow_redirects não é necessário aqui (o Stage 2 precisa, pois /b/id/ redireciona para arquivo real).
-    for size in ("L", "M"):
+    if "openlibrary_isbn" in hab:
+        for size in ("L", "M"):
+            try:
+                r = requests.head(
+                    f"https://covers.openlibrary.org/b/isbn/{isbn}-{size}.jpg?default=false",
+                    timeout=5,
+                )
+                if r.status_code == 200:
+                    return (f"https://covers.openlibrary.org/b/isbn/{isbn}-{size}.jpg", "openlibrary_isbn")
+            except requests.RequestException:
+                pass
+
+    # Estágio 2 — Open Library por cover_i (cobertura muito maior que por ISBN)
+    if "openlibrary_cover_i" in hab:
         try:
-            r = requests.head(
-                f"https://covers.openlibrary.org/b/isbn/{isbn}-{size}.jpg?default=false",
-                timeout=5,
+            data = _get_json(
+                f"https://openlibrary.org/search.json?isbn={isbn}&fields=cover_i",
+                tentativas=1, timeout=5,
             )
-            if r.status_code == 200:
-                return (f"https://covers.openlibrary.org/b/isbn/{isbn}-{size}.jpg", "openlibrary_isbn")
+            docs = (data or {}).get("docs", [])
+            cover_i = docs[0].get("cover_i") if docs else None
+            if cover_i:
+                r = requests.head(
+                    f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg",
+                    timeout=5,
+                    allow_redirects=True,
+                )
+                if r.status_code == 200:
+                    return (f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg", "openlibrary_cover_i")
         except requests.RequestException:
             pass
 
-    # Estágio 2 — Open Library por cover_i (cobertura muito maior que por ISBN)
-    try:
-        data = _get_json(
-            f"https://openlibrary.org/search.json?isbn={isbn}&fields=cover_i",
-            tentativas=1, timeout=5,
-        )
-        docs = (data or {}).get("docs", [])
-        cover_i = docs[0].get("cover_i") if docs else None
-        if cover_i:
-            r = requests.head(
-                f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg",
-                timeout=5,
-                allow_redirects=True,
-            )
-            if r.status_code == 200:
-                return (f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg", "openlibrary_cover_i")
-    except requests.RequestException:
-        pass
-
     # Estágio 3 — Google Books zoom=0 por ISBN
-    try:
-        url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
-        if GOOGLE_BOOKS_API_KEY:
-            url += f"&key={GOOGLE_BOOKS_API_KEY}"
-        data = _get_json(url, tentativas=1, timeout=5)
-        if data and data.get("totalItems"):
-            item = data["items"][0]
-            if item.get("volumeInfo", {}).get("imageLinks"):
-                volume_id = item["id"]
-                capa_url = (
-                    f"https://books.google.com/books/content"
-                    f"?id={volume_id}&printsec=frontcover&img=1&zoom=0"
-                )
-                head = requests.head(capa_url, timeout=5)
-                tamanho = int(head.headers.get("Content-Length", 10_000))
-                if tamanho > 5_000:
-                    return (capa_url, "googlebooks_isbn")
-    except requests.RequestException:
-        pass
+    if "googlebooks_isbn" in hab:
+        try:
+            url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
+            if GOOGLE_BOOKS_API_KEY:
+                url += f"&key={GOOGLE_BOOKS_API_KEY}"
+            data = _get_json(url, tentativas=1, timeout=5)
+            if data and data.get("totalItems"):
+                item = data["items"][0]
+                if item.get("volumeInfo", {}).get("imageLinks"):
+                    volume_id = item["id"]
+                    capa_url = (
+                        f"https://books.google.com/books/content"
+                        f"?id={volume_id}&printsec=frontcover&img=1&zoom=0"
+                    )
+                    head = requests.head(capa_url, timeout=5)
+                    tamanho = int(head.headers.get("Content-Length", 10_000))
+                    if tamanho > 5_000:
+                        return (capa_url, "googlebooks_isbn")
+        except requests.RequestException:
+            pass
 
     # Estágio 4 — Google Books por título+autor (cobre ISBNs brasileiros sem indexação por ISBN)
-    if titulo:
+    if "googlebooks_titulo" in hab and titulo:
         try:
             autor_principal = (autores or "").split(",")[0].strip()
             query = f'intitle:"{titulo}"'
@@ -410,22 +439,42 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> tuple[s
             pass
 
     # Estágio 5 — Open Library por título+autor (edições sem indexação por ISBN)
-    if titulo:
+    if "openlibrary_titulo" in hab and titulo:
         url = _capa_ol_titulo_autor(titulo, autores)
         if url:
             return (url, "openlibrary_titulo")
 
     # Estágio 6 — DuckDuckGo image search (fallback informal; sem chave, sem dependências)
-    url = _capa_duckduckgo(isbn, titulo, autores)
-    if url:
-        return (url, "duckduckgo")
+    if "duckduckgo" in hab:
+        url = _capa_duckduckgo(isbn, titulo, autores)
+        if url:
+            return (url, "duckduckgo")
 
     # Estágio 7 — Google Custom Search Images (opcional; requer GOOGLE_CUSTOM_SEARCH_KEY + CX)
-    url = _capa_google_cse(isbn, titulo, autores)
-    if url:
-        return (url, "google_cse")
+    if "google_cse" in hab:
+        url = _capa_google_cse(isbn, titulo, autores)
+        if url:
+            return (url, "google_cse")
 
     return ("", "")
+
+
+def carregar_config_apis() -> dict:
+    """Retorna config de APIs habilitadas. Todas habilitadas por padrão."""
+    try:
+        raw = json.loads(Path(CONFIG_APIS_FILE).read_text(encoding="utf-8"))
+        return {
+            "metadados": raw.get("metadados", _DEFAULTS_APIS["metadados"]),
+            "capas":     raw.get("capas",     _DEFAULTS_APIS["capas"]),
+        }
+    except (FileNotFoundError, json.JSONDecodeError):
+        return dict(_DEFAULTS_APIS)
+
+
+def salvar_config_apis(config: dict) -> None:
+    Path(CONFIG_APIS_FILE).write_text(
+        json.dumps(config, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
 
 def buscar_open_library_edicao(isbn: str) -> dict | None:
@@ -470,17 +519,28 @@ def buscar_open_library_edicao(isbn: str) -> dict | None:
     }
 
 
-def buscar_metadados(isbn: str) -> dict:
+def buscar_metadados(isbn: str, apis_metadados: list[str] | None = None) -> dict:
     """Cascata de APIs. ISBNs brasileiros (978-85/978-65) consultam BrasilAPI primeiro.
 
     Quando a fonte principal encontra título mas não o ano, percorre as fontes
     restantes para suplementar apenas o campo ano, sem substituir os demais dados.
+
+    apis_metadados: lista de IDs de fontes a usar (None = lê de config_apis.json).
     """
+    _MAP = {
+        "brasilapi":          buscar_brasil_api,
+        "openlibrary":        buscar_open_library,
+        "googlebooks":        buscar_google_books,
+        "isbndb":             buscar_isbndb,
+        "openlibrary_edicao": buscar_open_library_edicao,
+    }
+    habilitadas = set(apis_metadados or carregar_config_apis()["metadados"])
+
     e_brasileiro = isbn.startswith("97885") or isbn.startswith("97865")
-    if e_brasileiro:
-        fontes = [buscar_brasil_api, buscar_open_library, buscar_google_books, buscar_isbndb, buscar_open_library_edicao]
-    else:
-        fontes = [buscar_open_library, buscar_google_books, buscar_brasil_api, buscar_isbndb, buscar_open_library_edicao]
+    ordem_br  = ["brasilapi", "openlibrary", "googlebooks", "isbndb", "openlibrary_edicao"]
+    ordem_int = ["openlibrary", "googlebooks", "brasilapi", "isbndb", "openlibrary_edicao"]
+    fontes = [_MAP[k] for k in (ordem_br if e_brasileiro else ordem_int)
+              if k in habilitadas and k in _MAP]
 
     dados = None
     for buscar in fontes:

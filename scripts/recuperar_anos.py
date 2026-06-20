@@ -6,7 +6,9 @@ o campo 'ano' se um valor for encontrado. Mantém todos os outros campos.
 
 Uso:
     python scripts/recuperar_anos.py
-    python scripts/recuperar_anos.py --dry-run   # só mostra o que faria
+    python scripts/recuperar_anos.py --dry-run
+    python scripts/recuperar_anos.py --apis openlibrary,googlebooks
+    python scripts/recuperar_anos.py --apis brasilapi,googlebooks --dry-run
 """
 import sys
 import time
@@ -14,12 +16,30 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from catalog.metadata.api import buscar_metadados
+from catalog.metadata.api import FONTES_METADADOS, buscar_metadados
 from catalog.storage import carregar_todos_registros, reescrever_registros
 
 DRY_RUN = "--dry-run" in sys.argv
-CHECKPOINT = 20   # salva a cada N livros para não perder progresso
-PAUSA_S = 0.5     # delay entre ISBNs para respeitar rate limits
+CHECKPOINT = 20
+PAUSA_S = 0.5
+
+# --apis openlibrary,googlebooks  (None = usa config_apis.json ou padrão)
+APIS: list[str] | None = None
+for _i, _arg in enumerate(sys.argv):
+    if _arg == "--apis" and _i + 1 < len(sys.argv):
+        APIS = [a.strip() for a in sys.argv[_i + 1].split(",")]
+        break
+    if _arg.startswith("--apis="):
+        APIS = [a.strip() for a in _arg.split("=", 1)[1].split(",")]
+        break
+
+_IDS_VALIDOS = {f for f, _, _ in FONTES_METADADOS}
+if APIS is not None:
+    _invalidos = [a for a in APIS if a not in _IDS_VALIDOS]
+    if _invalidos:
+        print(f"ERRO: APIs desconhecidas: {', '.join(_invalidos)}")
+        print(f"Válidas: {', '.join(f for f, _, _ in FONTES_METADADOS)}")
+        sys.exit(1)
 
 
 def _ano_invalido(r: dict) -> bool:
@@ -28,6 +48,9 @@ def _ano_invalido(r: dict) -> bool:
 
 
 def main() -> None:
+    if APIS is not None:
+        print(f"APIs selecionadas: {', '.join(APIS)}")
+
     registros = carregar_todos_registros()
     indices = [i for i, r in enumerate(registros) if _ano_invalido(r)]
     total = len(indices)
@@ -49,7 +72,7 @@ def main() -> None:
         print(f"[{n:>3}/{total}] {titulo}", end=" … ", flush=True)
 
         try:
-            resultado = buscar_metadados(isbn)
+            resultado = buscar_metadados(isbn, apis_metadados=APIS)
             ano = str(resultado.get("ano") or "").strip()
             if ano and ano.lower() != "none":
                 if not DRY_RUN:
