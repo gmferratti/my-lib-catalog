@@ -47,7 +47,39 @@ def _gerar_txt(resultados: list, sem_lugar: list[dict], estilo: str) -> str:
     return "\n".join(linhas)
 
 
-with st.expander("⚙️ Configurar estantes", expanded=not bool(_carregar_config().estantes)):
+def _sync_draft() -> None:
+    """Lê os valores atuais dos widgets e os grava no rascunho."""
+    for i, e in enumerate(st.session_state.get("estante_draft", [])):
+        e["nome"] = st.session_state.get(f"est_{i}_nome", e["nome"])
+        for j, p in enumerate(e["prateleiras"]):
+            p["nome"] = st.session_state.get(f"prat_{i}_{j}_nome", p["nome"])
+            p["largura_cm"] = float(
+                st.session_state.get(f"prat_{i}_{j}_largura", p["largura_cm"])
+            )
+
+
+def _clear_widget_keys() -> None:
+    """Remove as chaves dos widgets de prateleira/estante para forçar reinicialização."""
+    for k in [k for k in st.session_state
+              if k.startswith(("est_", "prat_", "espessura_editor"))]:
+        del st.session_state[k]
+
+
+if "estante_draft" not in st.session_state:
+    _cfg_init = carregar_config()
+    st.session_state["estante_draft"] = [
+        {
+            "nome": e.nome,
+            "prateleiras": [
+                {"nome": p.nome, "largura_cm": p.largura_cm}
+                for p in e.prateleiras
+            ],
+        }
+        for e in _cfg_init.estantes
+    ]
+    st.session_state["espessura_draft"] = _cfg_init.espessura_media_cm
+
+with st.expander("⚙️ Configurar estantes", expanded=not bool(st.session_state["estante_draft"])):
     cfg_atual = _carregar_config()
 
     with st.form("form_config_estantes"):
