@@ -49,3 +49,20 @@ def test_plain_text_com_autor():
 def test_plain_text_sem_autor():
     livro = _livro(titulo="Quadribol através dos séculos", ano="2001")
     assert _formatar_livro(livro, markdown=False) == "Quadribol através dos séculos (2001)"
+
+
+# ── ano inválido / None literal ───────────────────────────────────────────────
+
+def test_ano_none_literal_omitido():
+    livro = _livro(titulo="Algo", autores="Alguém", ano="None")
+    assert _formatar_livro(livro) == "**Algo** — Alguém"
+
+
+def test_ano_none_python_omitido():
+    livro = _livro(titulo="Algo", autores="Alguém", ano=None)
+    assert _formatar_livro(livro) == "**Algo** — Alguém"
+
+
+def test_ano_none_sem_autor():
+    livro = _livro(titulo="A startup enxuta", ano="None")
+    assert _formatar_livro(livro) == "**A startup enxuta**"

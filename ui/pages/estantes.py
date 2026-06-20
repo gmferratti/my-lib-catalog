@@ -145,12 +145,26 @@ with st.expander("⚙️ Configurar estantes", expanded=not bool(st.session_stat
         )
 
     st.divider()
-    col_add_e, col_save = st.columns([1, 1])
-    if col_add_e.button("+ Adicionar estante", key="add_estante"):
+    col_add_e, col_add_p, col_save = st.columns([1, 1, 1])
+    if col_add_e.button("+ Estante", key="add_estante"):
         _sync_draft()
         n = len(st.session_state["estante_draft"])
         st.session_state["estante_draft"].append({
             "nome": f"Estante {n + 1}",
+            "prateleiras": [{"nome": "A", "largura_cm": 80.0}],
+        })
+        _clear_widget_keys()
+        st.rerun()
+
+    if col_add_p.button("+ Prateleira avulsa", key="add_prat_avulsa",
+                        help="Prateleira sem estante — p. ex. fixada na parede"):
+        _sync_draft()
+        n_avulsas = sum(
+            1 for e in st.session_state["estante_draft"]
+            if e["nome"].startswith("Prateleira ")
+        )
+        st.session_state["estante_draft"].append({
+            "nome": f"Prateleira {n_avulsas + 1}",
             "prateleiras": [{"nome": "A", "largura_cm": 80.0}],
         })
         _clear_widget_keys()
