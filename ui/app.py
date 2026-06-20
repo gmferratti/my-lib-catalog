@@ -18,7 +18,10 @@ st.set_page_config(
     layout="wide",
 )
 
-git_sync.garantir_branch_sessao()
+try:
+    git_sync.garantir_branch_sessao()
+except Exception:
+    pass  # Streamlit Cloud ou ambiente sem git writeable — session bar mostrará aviso
 
 pg = st.navigation(
     [
