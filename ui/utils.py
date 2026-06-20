@@ -40,8 +40,46 @@ div[data-testid="column"] button[kind="secondary"]:hover {
 }
 """
     return """
-.badge-etiqueta { background: #ede7f6; color: #6a1b9a; }
-.capa-placeholder { background: #eceff1; }
+/* Variáveis CSS do Streamlit — restaura paleta light */
+:root {
+    --text-color: #31333f;
+    --background-color: #ffffff;
+    --secondary-background-color: #f0f2f6;
+    --primary-color: #ff4b4b;
+    color-scheme: light;
+}
+/* Backgrounds */
+.stApp, [data-testid="stAppViewContainer"],
+[data-testid="stAppViewContainer"] > .main,
+[data-testid="stMain"], [data-testid="block-container"] { background-color: #ffffff !important; }
+section[data-testid="stSidebar"],
+section[data-testid="stSidebar"] > div,
+section[data-testid="stSidebar"] [data-testid="stSidebarContent"] { background-color: #f0f2f6 !important; }
+/* Texto geral */
+.stApp, .stApp p, .stApp span, .stApp label,
+.stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6,
+.stMarkdown, .stMarkdown *, [data-testid="stText"],
+[data-testid="stMarkdownContainer"] * { color: #31333f !important; }
+/* Sidebar — links de navegação e texto */
+section[data-testid="stSidebar"] *,
+[data-testid="stSidebarNav"] *, [data-testid="stSidebarNavLink"],
+[data-testid="stPageLink"] span, [data-testid="stPageLink"] p { color: #31333f !important; }
+/* Filtros e widgets */
+[data-testid="stSelectbox"] *, [data-testid="stMultiSelect"] *,
+[data-testid="stCheckbox"] *, [data-testid="stRadio"] *,
+[data-testid="stNumberInput"] *, [data-testid="stTextInput"] * { color: #31333f !important; }
+.stTextInput input, [data-baseweb="input"] input,
+[data-baseweb="select"] *, [data-baseweb="popover"] * {
+    background-color: #ffffff !important; color: #31333f !important;
+}
+/* Métricas */
+[data-testid="metric-container"] { background-color: #f0f2f6 !important; border: 1px solid #e6e9ef !important; }
+[data-testid="stMetricValue"], [data-testid="stMetricLabel"],
+[data-testid="stMetricDelta"] { color: #31333f !important; }
+/* Expander e divider */
+[data-testid="stExpander"], [data-testid="stExpander"] * { background-color: #f0f2f6 !important; color: #31333f !important; }
+hr[data-testid="stDivider"] { border-color: #e6e9ef !important; }
+/* Botão título do card */
 div[data-testid="column"] button[kind="secondary"] {
     background: none !important; border: none !important; box-shadow: none !important;
     text-align: left !important; font-weight: 600 !important;
@@ -52,15 +90,9 @@ div[data-testid="column"] button[kind="secondary"] {
 div[data-testid="column"] button[kind="secondary"]:hover {
     color: #1565c0 !important; background: none !important; box-shadow: none !important;
 }
-.stApp { background-color: #ffffff !important; }
-[data-testid="stAppViewContainer"],
-[data-testid="stAppViewContainer"] > .main { background-color: #ffffff !important; }
-section[data-testid="stSidebar"],
-section[data-testid="stSidebar"] > div { background-color: #f0f2f6 !important; }
-[data-testid="metric-container"] { background-color: #f0f2f6 !important; border: 1px solid #e6e9ef !important; }
-[data-testid="stMetricValue"], [data-testid="stMetricLabel"] { color: #31333f !important; }
-.stTextInput input { background-color: #ffffff !important; color: #31333f !important; }
-[data-testid="stExpander"] { background-color: #f0f2f6 !important; }
+/* HTML customizado */
+.badge-etiqueta { background: #ede7f6 !important; color: #6a1b9a !important; }
+.capa-placeholder { background: #eceff1 !important; }
 """
 
 
