@@ -1,1 +1,2 @@
+- ⚠️ Sessão não inicializada — recarregue a página (na lista de leitura)
 - Refatoração do código seguindo boas práticas de clean code e clean architecture once is done.

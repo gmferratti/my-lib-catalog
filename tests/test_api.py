@@ -9,6 +9,7 @@ from catalog.metadata.api import (
     buscar_isbndb,
     buscar_metadados,
     buscar_open_library,
+    buscar_open_library_edicao,
 )
 
 ISBN = "9781098115784"
@@ -177,7 +178,7 @@ def test_isbndb_connection_error(mocker):
 # ──────────────────────────────────────────────
 
 def test_cascata_para_no_primeiro_sucesso(mocker):
-    sucesso = {"titulo": "Livro Teste", "fonte": "openlibrary"}
+    sucesso = {"titulo": "Livro Teste", "fonte": "openlibrary", "ano": "2020"}
     mocker.patch.object(api_module, "buscar_open_library", return_value=sucesso)
     mock_gb = mocker.patch.object(api_module, "buscar_google_books")
     result = buscar_metadados(ISBN)
@@ -190,6 +191,7 @@ def test_cascata_exaurida_retorna_nao_encontrado(mocker):
     mocker.patch.object(api_module, "buscar_google_books", return_value=None)
     mocker.patch.object(api_module, "buscar_brasil_api", return_value=None)
     mocker.patch.object(api_module, "buscar_isbndb", return_value=None)
+    mocker.patch.object(api_module, "buscar_open_library_edicao", return_value=None)
     result = buscar_metadados(ISBN)
     assert result["fonte"] == "nao_encontrado"
     assert result["titulo"] == ""
@@ -200,13 +202,14 @@ def test_resultado_sempre_tem_isbn_e_data(mocker):
     mocker.patch.object(api_module, "buscar_google_books", return_value=None)
     mocker.patch.object(api_module, "buscar_brasil_api", return_value=None)
     mocker.patch.object(api_module, "buscar_isbndb", return_value=None)
+    mocker.patch.object(api_module, "buscar_open_library_edicao", return_value=None)
     result = buscar_metadados(ISBN)
     assert result["isbn"] == ISBN
     assert result["data_cadastro"] != ""
 
 
 def test_isbn_brasileiro_consulta_brasil_api_primeiro(mocker):
-    sucesso = {"titulo": "Livro BR", "fonte": "brasilapi"}
+    sucesso = {"titulo": "Livro BR", "fonte": "brasilapi", "ano": "2025"}
     mock_br = mocker.patch.object(api_module, "buscar_brasil_api", return_value=sucesso)
     mock_ol = mocker.patch.object(api_module, "buscar_open_library")
     result = buscar_metadados(ISBN_BR)
@@ -221,6 +224,7 @@ def test_isbn_brasileiro_fallback_para_ol_quando_brasil_api_falha(mocker):
     mocker.patch.object(api_module, "buscar_open_library", return_value=sucesso_ol)
     mocker.patch.object(api_module, "buscar_google_books", return_value=None)
     mocker.patch.object(api_module, "buscar_isbndb", return_value=None)
+    mocker.patch.object(api_module, "buscar_open_library_edicao", return_value=None)
     result = buscar_metadados(ISBN_BR)
     assert result["titulo"] == "Livro via OL"
     assert result["fonte"] == "openlibrary"
@@ -698,3 +702,88 @@ def test_capa_google_cse_connection_error(mocker):
     mocker.patch("requests.get", side_effect=requests.ConnectionError)
     from catalog.metadata.api import _capa_google_cse
     assert _capa_google_cse(ISBN) == ""
+
+
+# ──────────────────────────────────────────────
+# buscar_open_library_edicao
+# ──────────────────────────────────────────────
+
+def test_buscar_open_library_edicao_happy_path(mocker):
+    payload = {
+        "title": "Harry Potter e o Prisioneiro de Azkaban",
+        "publishers": ["Rocco"],
+        "publish_date": "2015",
+        "number_of_pages": 448,
+        "languages": [{"key": "/languages/por"}],
+        "covers": [12345],
+    }
+    mocker.patch("requests.get", return_value=_mock_resp(mocker, payload))
+    result = buscar_open_library_edicao(ISBN)
+    assert result is not None
+    assert result["titulo"] == "Harry Potter e o Prisioneiro de Azkaban"
+    assert result["ano"] == "2015"
+    assert result["editora"] == "Rocco"
+    assert result["idioma"] == "por"
+    assert result["fonte"] == "openlibrary_edicao"
+    assert "covers.openlibrary.org/b/id/12345" in result["capa_url"]
+
+
+def test_buscar_open_library_edicao_publish_date_verbose(mocker):
+    payload = {"title": "Duna", "publish_date": "January 2018"}
+    mocker.patch("requests.get", return_value=_mock_resp(mocker, payload))
+    result = buscar_open_library_edicao(ISBN)
+    assert result is not None
+    assert result["ano"] == "2018"
+
+
+def test_buscar_open_library_edicao_sem_titulo(mocker):
+    mocker.patch("requests.get", return_value=_mock_resp(mocker, {"publishers": ["Rocco"]}))
+    assert buscar_open_library_edicao(ISBN) is None
+
+
+def test_buscar_open_library_edicao_connection_error(mocker):
+    mocker.patch("requests.get", side_effect=requests.ConnectionError)
+    assert buscar_open_library_edicao(ISBN) is None
+
+
+# ──────────────────────────────────────────────
+# buscar_metadados — suplemento de ano
+# ──────────────────────────────────────────────
+
+def test_cascata_suplementa_ano_de_fonte_secundaria(mocker):
+    """Quando BrasilAPI tem título mas sem ano, o ano vem do Google Books."""
+    br_sem_ano = {"titulo": "Duna", "autores": "Frank Herbert", "fonte": "brasilapi", "ano": ""}
+    gb_com_ano = {"titulo": "Duna", "autores": "Frank Herbert", "fonte": "googlebooks", "ano": "2019"}
+    mocker.patch.object(api_module, "buscar_brasil_api", return_value=br_sem_ano)
+    mocker.patch.object(api_module, "buscar_open_library", return_value=None)
+    mocker.patch.object(api_module, "buscar_google_books", return_value=gb_com_ano)
+    mocker.patch.object(api_module, "buscar_isbndb", return_value=None)
+    mocker.patch.object(api_module, "buscar_open_library_edicao", return_value=None)
+    result = buscar_metadados(ISBN_BR)
+    assert result["titulo"] == "Duna"
+    assert result["fonte"] == "brasilapi"
+    assert result["autores"] == "Frank Herbert"
+    assert result["ano"] == "2019"
+
+
+def test_cascata_preserva_dados_da_fonte_principal_ao_suplementar_ano(mocker):
+    """Dados completos do BrasilAPI (autores, editora etc.) são preservados ao suplementar o ano."""
+    br_sem_ano = {
+        "titulo": "Código Limpo", "autores": "Robert C. Martin",
+        "editora": "Alta Books", "paginas": 464,
+        "fonte": "brasilapi", "ano": "",
+    }
+    ol_edicao_com_ano = {
+        "titulo": "Clean Code", "autores": "", "editora": "OL Publisher",
+        "fonte": "openlibrary_edicao", "ano": "2011",
+    }
+    mocker.patch.object(api_module, "buscar_brasil_api", return_value=br_sem_ano)
+    mocker.patch.object(api_module, "buscar_open_library", return_value=None)
+    mocker.patch.object(api_module, "buscar_google_books", return_value=None)
+    mocker.patch.object(api_module, "buscar_isbndb", return_value=None)
+    mocker.patch.object(api_module, "buscar_open_library_edicao", return_value=ol_edicao_com_ano)
+    result = buscar_metadados(ISBN_BR)
+    assert result["fonte"] == "brasilapi"
+    assert result["autores"] == "Robert C. Martin"
+    assert result["editora"] == "Alta Books"
+    assert result["ano"] == "2011"

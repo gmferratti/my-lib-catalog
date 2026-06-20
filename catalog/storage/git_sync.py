@@ -56,7 +56,10 @@ def branch_atual() -> str:
         b = github_sync.branch_sessao()
         if b:
             return b
-    return _git_output("rev-parse", "--abbrev-ref", "HEAD")
+    try:
+        return _git_output("rev-parse", "--abbrev-ref", "HEAD")
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return "HEAD"
 
 
 def garantir_branch_sessao() -> str:
@@ -71,7 +74,10 @@ def garantir_branch_sessao() -> str:
     try:
         _git("checkout", "-b", nome)
     except subprocess.CalledProcessError:
-        _git("checkout", nome)
+        try:
+            _git("checkout", nome)
+        except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            raise RuntimeError(f"Não foi possível criar/acessar o branch {nome}: {e}") from e
     return nome
 
 
@@ -114,9 +120,12 @@ def finalizar_sessao() -> str:
     sufixo = "ões" if n > 1 else "ão"
     mensagem = f"data: sessão {hoje} – {n} alteraç{sufixo}"
     branch = branch_atual()
-    _git("reset", "--soft", "main")
-    _git("commit", "-m", mensagem)
-    _git("push", "-u", "origin", branch)
+    try:
+        _git("reset", "--soft", "main")
+        _git("commit", "-m", mensagem)
+        _git("push", "-u", "origin", branch)
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        raise RuntimeError(f"Erro ao finalizar sessão via git CLI: {e}") from e
     return _gh(
         "pr", "create",
         "--title", mensagem,

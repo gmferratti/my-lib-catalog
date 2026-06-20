@@ -55,6 +55,34 @@ def _get_branch_sha(branch: str) -> str | None:
     return None
 
 
+def _verificar_acesso_escrita() -> None:
+    """Verifica se o token tem permissão de push antes de tentar criar branches."""
+    r = requests.get(
+        f"https://api.github.com/repos/{_repo()}",
+        headers=_headers(),
+        timeout=10,
+    )
+    if r.status_code == 401:
+        raise RuntimeError(
+            "GITHUB_TOKEN inválido ou expirado. Gere um novo token em:\n"
+            "GitHub → Settings → Developer settings → Personal access tokens"
+        )
+    if r.status_code == 404:
+        raise RuntimeError(
+            f"Repositório '{_repo()}' não encontrado.\n"
+            "Verifique GITHUB_REPO (formato: 'owner/nome-do-repo') e se o token tem escopo 'repo'."
+        )
+    if r.status_code != 200:
+        raise RuntimeError(f"Erro ao acessar repositório: HTTP {r.status_code}")
+    perms = r.json().get("permissions", {})
+    if not perms.get("push", False):
+        raise RuntimeError(
+            f"Token sem permissão de escrita em '{_repo()}'.\n"
+            "Recrie o token com escopo 'repo' (não apenas 'public_repo').\n"
+            "GitHub → Settings → Developer settings → Tokens (classic) → escopo: repo"
+        )
+
+
 def garantir_branch_sessao() -> str:
     global _sessao_branch
     if _sessao_branch:
@@ -67,6 +95,10 @@ def garantir_branch_sessao() -> str:
         _sessao_branch = nome
         return nome
 
+    # Verifica acesso de escrita antes de tentar criar o branch.
+    # Dá mensagem clara em vez de 404 genérico.
+    _verificar_acesso_escrita()
+
     base_sha = _get_branch_sha(_base_branch())
     if not base_sha:
         raise RuntimeError(f"Branch base '{_base_branch()}' não encontrado no GitHub")
@@ -78,7 +110,14 @@ def garantir_branch_sessao() -> str:
         timeout=10,
     )
     if r.status_code not in (201, 422):  # 422 = branch já existe (race condition)
-        raise RuntimeError(f"Erro ao criar branch {nome}: HTTP {r.status_code}")
+        try:
+            detalhe = r.json().get("message", r.text[:200])
+        except Exception:
+            detalhe = r.text[:200]
+        raise RuntimeError(
+            f"Erro ao criar branch {nome}: HTTP {r.status_code} — {detalhe}\n"
+            f"Repo: {_repo()}"
+        )
 
     _sessao_branch = nome
     return nome

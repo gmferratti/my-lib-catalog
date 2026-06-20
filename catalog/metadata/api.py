@@ -428,19 +428,73 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> tuple[s
     return ("", "")
 
 
+def buscar_open_library_edicao(isbn: str) -> dict | None:
+    """Open Library — endpoint de edição específica (/isbn/{isbn}.json).
+
+    Complementa buscar_open_library (que usa /search.json e retorna
+    first_publish_year da obra). Aqui obtemos publish_date da edição
+    concreta, útil para traduções brasileiras com ano diferente do original.
+    Autores não são retornados (requer chamadas adicionais via work links).
+    """
+    try:
+        data = _get_json(f"https://openlibrary.org/isbn/{isbn}.json")
+    except (requests.RequestException, ValueError):
+        return None
+    if not data or not data.get("title"):
+        return None
+
+    publish_date = data.get("publish_date", "")
+    ano = ""
+    if publish_date:
+        m = re.search(r"\b(19|20)\d{2}\b", publish_date)
+        ano = m.group(0) if m else ""
+
+    langs = data.get("languages", [])
+    idioma = langs[0].get("key", "").split("/")[-1] if langs else ""
+
+    covers = data.get("covers", [])
+    capa_url = (
+        f"https://covers.openlibrary.org/b/id/{covers[0]}-M.jpg" if covers else ""
+    )
+
+    return {
+        "titulo": data.get("title", ""),
+        "autores": "",
+        "editora": ", ".join(data.get("publishers", [])[:1]),
+        "ano": ano,
+        "paginas": data.get("number_of_pages", ""),
+        "idioma": idioma,
+        "assuntos": "",
+        "capa_url": capa_url,
+        "fonte": "openlibrary_edicao",
+    }
+
+
 def buscar_metadados(isbn: str) -> dict:
-    """Cascata de APIs. ISBNs brasileiros (978-85/978-65) consultam BrasilAPI primeiro."""
+    """Cascata de APIs. ISBNs brasileiros (978-85/978-65) consultam BrasilAPI primeiro.
+
+    Quando a fonte principal encontra título mas não o ano, percorre as fontes
+    restantes para suplementar apenas o campo ano, sem substituir os demais dados.
+    """
     e_brasileiro = isbn.startswith("97885") or isbn.startswith("97865")
     if e_brasileiro:
-        fontes = [buscar_brasil_api, buscar_open_library, buscar_google_books, buscar_isbndb]
+        fontes = [buscar_brasil_api, buscar_open_library, buscar_google_books, buscar_isbndb, buscar_open_library_edicao]
     else:
-        fontes = [buscar_open_library, buscar_google_books, buscar_brasil_api, buscar_isbndb]
+        fontes = [buscar_open_library, buscar_google_books, buscar_brasil_api, buscar_isbndb, buscar_open_library_edicao]
+
+    dados = None
     for buscar in fontes:
-        dados = buscar(isbn)
-        if dados and dados.get("titulo"):
-            break
-    else:
-        dados = None
+        resultado = buscar(isbn)
+        if not resultado or not resultado.get("titulo"):
+            continue
+        if dados is None:
+            dados = resultado
+            if (dados.get("ano") or "").strip():
+                break  # fonte principal tem título + ano — pronto
+        elif not (dados.get("ano") or "").strip() and (resultado.get("ano") or "").strip():
+            dados["ano"] = resultado["ano"].strip()
+            break  # suplementou o ano
+
     if not dados:
         dados = {k: "" for k in CSV_HEADERS}
         dados["fonte"] = "nao_encontrado"
