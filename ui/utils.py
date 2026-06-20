@@ -514,27 +514,30 @@ def _session_bar() -> None:
     import catalog.storage.git_sync as git_sync
     import catalog.storage.github_sync as github_sync
 
+    # Modo GitHub API: garante que o branch de sessão existe.
+    # Se falhar, mostra o erro real — "recarregar" não ajudaria.
+    if github_sync.disponivel() and not github_sync.branch_sessao():
+        try:
+            git_sync.garantir_branch_sessao()
+        except Exception as e:
+            with st.sidebar:
+                st.divider()
+                st.caption(f"⚠️ GitHub sync: {e}")
+            return
+
+    try:
+        branch = git_sync.branch_atual()
+        n = git_sync.contar_commits_sessao()
+    except Exception:
+        return  # Falha silenciosa — não poluir sidebar
+
+    # Só exibe o painel quando há um branch de sessão ativo.
+    # Em dev local sem GitHub token e sem branch data/, não exibe nada.
+    if not branch.startswith("data/"):
+        return
+
     with st.sidebar:
         st.divider()
-        try:
-            branch = git_sync.branch_atual()
-            n = git_sync.contar_commits_sessao()
-        except Exception:
-            if github_sync.disponivel():
-                st.caption("⚠️ GitHub sync: erro de conexão")
-            else:
-                st.caption("⚠️ git indisponível")
-            return
-
-        if not branch.startswith("data/"):
-            if github_sync.disponivel():
-                st.caption("⚠️ Sessão não inicializada — recarregue a página")
-            elif branch in ("main", "master"):
-                st.caption("🔒 Configure `GITHUB_TOKEN` nos secrets para ativar sync")
-            else:
-                st.caption(f"⚠️ Branch: `{branch}`")
-            return
-
         st.caption(f"🌿 `{branch}`")
         if n == 0:
             st.caption("Sem alterações pendentes.")
