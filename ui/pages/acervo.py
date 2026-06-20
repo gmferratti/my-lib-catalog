@@ -129,8 +129,8 @@ div[data-testid="column"] button[kind="secondary"]:hover {
                 if capa:
                     st.markdown(
                         f'<a href="#" onclick="return false" style="display:block;cursor:pointer">'
-                        f'<img src="{capa}" style="width:100%;border-radius:4px;'
-                        f'transition:box-shadow 0.15s" /></a>',
+                        f'<img src="{capa}" style="width:100%;height:160px;object-fit:cover;'
+                        f'border-radius:4px;transition:box-shadow 0.15s" /></a>',
                         unsafe_allow_html=True,
                     )
                 else:
