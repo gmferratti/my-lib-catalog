@@ -28,15 +28,24 @@ def _css_tema(dark: bool) -> str:
         return """
 .badge-etiqueta { background: #2d1b4e; color: #ce93d8; }
 .capa-placeholder { background: #2d2d2d; }
+.capa-img { background: #1e1e1e; }
+div[data-testid="column"] button[kind="secondary"],
+div[data-testid="column"] button[kind="secondary"] * {
+    color: #fafafa !important;
+}
 div[data-testid="column"] button[kind="secondary"] {
     background: none !important; border: none !important; box-shadow: none !important;
     text-align: left !important; font-weight: 600 !important;
     padding: 2px 0 !important; cursor: pointer !important;
     line-height: 1.4 !important; white-space: normal !important;
-    color: #fafafa !important; width: 100% !important;
+    width: 100% !important;
+}
+div[data-testid="column"] button[kind="secondary"]:hover,
+div[data-testid="column"] button[kind="secondary"]:hover * {
+    color: #90caf9 !important;
 }
 div[data-testid="column"] button[kind="secondary"]:hover {
-    color: #90caf9 !important; background: none !important; box-shadow: none !important;
+    background: none !important; box-shadow: none !important;
 }
 """
     return """
@@ -79,20 +88,29 @@ section[data-testid="stSidebar"] *,
 /* Expander e divider */
 [data-testid="stExpander"], [data-testid="stExpander"] * { background-color: #f0f2f6 !important; color: #31333f !important; }
 hr[data-testid="stDivider"] { border-color: #e6e9ef !important; }
-/* Botão título do card */
+/* Botão título do card — aplica cor no elemento E nos filhos para vencer regras explícitas do tema dark */
+div[data-testid="column"] button[kind="secondary"],
+div[data-testid="column"] button[kind="secondary"] * {
+    color: rgb(49,51,63) !important;
+}
 div[data-testid="column"] button[kind="secondary"] {
     background: none !important; border: none !important; box-shadow: none !important;
     text-align: left !important; font-weight: 600 !important;
     padding: 2px 0 !important; cursor: pointer !important;
     line-height: 1.4 !important; white-space: normal !important;
-    color: rgb(49,51,63) !important; width: 100% !important;
+    width: 100% !important;
+}
+div[data-testid="column"] button[kind="secondary"]:hover,
+div[data-testid="column"] button[kind="secondary"]:hover * {
+    color: #1565c0 !important;
 }
 div[data-testid="column"] button[kind="secondary"]:hover {
-    color: #1565c0 !important; background: none !important; box-shadow: none !important;
+    background: none !important; box-shadow: none !important;
 }
 /* HTML customizado */
 .badge-etiqueta { background: #ede7f6 !important; color: #6a1b9a !important; }
 .capa-placeholder { background: #eceff1 !important; }
+.capa-img { background: #ffffff; }
 """
 
 

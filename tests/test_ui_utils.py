@@ -93,3 +93,24 @@ def test_css_tema_light_contem_sidebar():
     css = utils._css_tema(dark=False)
     assert "stSidebar" in css
     assert "#f0f2f6" in css
+
+
+def test_css_tema_dark_capa_img_fundo_escuro():
+    import ui.utils as utils
+    css = utils._css_tema(dark=True)
+    assert ".capa-img" in css
+    assert "#1e1e1e" in css
+
+
+def test_css_tema_light_capa_img_fundo_branco():
+    import ui.utils as utils
+    css = utils._css_tema(dark=False)
+    assert ".capa-img" in css
+    assert "#ffffff" in css
+
+
+def test_css_tema_light_botao_titulo_cobre_filhos():
+    """Seletor * deve garantir que elementos filhos do botão recebam a cor."""
+    import ui.utils as utils
+    css = utils._css_tema(dark=False)
+    assert 'button[kind="secondary"] *' in css

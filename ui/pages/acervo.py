@@ -153,8 +153,8 @@ else:
                 if capa:
                     st.markdown(
                         f'<a href="#" onclick="return false" style="display:block;cursor:pointer">'
-                        f'<img src="{capa}" style="width:100%;height:260px;object-fit:contain;'
-                        f'background:#ffffff;border-radius:4px;transition:box-shadow 0.15s" /></a>',
+                        f'<img src="{capa}" class="capa-img" style="width:100%;height:260px;'
+                        f'object-fit:contain;border-radius:4px;transition:box-shadow 0.15s" /></a>',
                         unsafe_allow_html=True,
                     )
                 else:
