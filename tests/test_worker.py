@@ -1,4 +1,5 @@
 import importlib
+import logging
 import queue
 import sys
 import threading
@@ -103,3 +104,22 @@ def test_worker_on_result_none_nao_falha(mocker, sample_isbn, sample_record):
     fila = queue.Queue()
     fila.put(sample_isbn)
     _run_worker(fila, on_result=None)  # não deve lançar exceção
+
+
+def test_worker_loga_error_em_excecao(mocker, caplog, sample_isbn):
+    mocker.patch.object(
+        _worker_mod, "buscar_metadados",
+        side_effect=RuntimeError("falha de rede"),
+    )
+    mocker.patch.object(_worker_mod, "salvar")
+    mocker.patch.object(_worker_mod, "remover_pendente")
+
+    fila = queue.Queue()
+    fila.put(sample_isbn)
+
+    with caplog.at_level(logging.ERROR, logger="catalog.metadata.worker"):
+        _run_worker(fila)
+
+    mensagens = [r.message for r in caplog.records]
+    assert any("erro inesperado" in m for m in mensagens)
+    assert any(sample_isbn in m for m in mensagens)

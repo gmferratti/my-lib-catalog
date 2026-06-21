@@ -1,9 +1,12 @@
+import logging
 import queue
 import threading
 from collections.abc import Callable
 
 from .api import buscar_capa, buscar_metadados
 from ..storage.persistence import remover_pendente, salvar
+
+logger = logging.getLogger(__name__)
 
 
 def worker(
@@ -25,6 +28,7 @@ def worker(
             fila.task_done()
             break
 
+        logger.debug("[%s] recebido da fila", isbn)
         try:
             registro = buscar_metadados(isbn)
             metadata_capa = registro.get("capa_url", "")
@@ -39,10 +43,12 @@ def worker(
                 registro["capa_fonte"] = ""
             salvar(registro)
             remover_pendente(isbn)
+            titulo = registro.get("titulo") or "sem metadados"
+            logger.info("[%s] processado — %s", isbn, titulo)
             if on_result is not None:
                 on_result(registro)
         except Exception as e:
-            # ISBN permanece em pendentes.txt para retry na próxima execução
+            logger.error("[%s] erro inesperado: %s", isbn, e)
             if on_result is not None:
                 on_result({"isbn": isbn, "_erro": str(e)})
         finally:
