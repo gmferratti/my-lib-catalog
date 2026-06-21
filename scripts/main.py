@@ -67,6 +67,27 @@ def _configurar_logging() -> None:
     raiz.addHandler(fh)
 
 
+_CAMPOS_DISPLAY = {
+    "titulo":    "título",
+    "autores":   "autores",
+    "editora":   "editora",
+    "ano":       "ano",
+    "paginas":   "páginas",
+    "idioma":    "idioma",
+    "assuntos":  "assuntos",
+    "etiquetas": "etiquetas",
+}
+
+
+def _resumo_campos(registro: dict) -> str:
+    recuperados = [
+        label
+        for campo, label in _CAMPOS_DISPLAY.items()
+        if str(registro.get(campo, "")).strip()
+    ]
+    return ", ".join(recuperados) if recuperados else "nenhum"
+
+
 def _make_on_result(fila: "queue.Queue"):
     def _on_result(registro: dict) -> None:
         if "_erro" in registro:
@@ -75,11 +96,15 @@ def _make_on_result(fila: "queue.Queue"):
         elif registro.get("titulo"):
             print(f"\n  ✓ [{registro['isbn']}] {registro['titulo']} — {registro['autores']}",
                   flush=True)
+            fonte = registro.get("fonte", "")
+            capa = registro.get("capa_fonte") or "sem capa"
+            campos = _resumo_campos(registro)
+            print(f"     → fonte: {fonte} | capa: {capa} | campos: {campos}", flush=True)
         else:
             print(f"\n  ⚠  [{registro['isbn']}] sem metadados — salvo só o ISBN",
                   flush=True)
+            print(f"     → nenhuma fonte retornou dados", flush=True)
 
-        # on_result é chamado antes de task_done(), então -1 para o count real
         restante = fila.unfinished_tasks - 1
         if restante > 0:
             print(f"     ({restante} na fila)", flush=True)
