@@ -220,3 +220,5 @@ __marimo__/
 # TEMP files
 tmp/*
 .devcontainer/*
+
+data/logs/

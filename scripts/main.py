@@ -21,13 +21,17 @@ Comandos durante a sessão:
 """
 
 import argparse
+import logging
 import queue
 import sys
 import threading
+from datetime import date
 from pathlib import Path
 
 # Make src/ findable when running as `python scripts/main.py`
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
+LOG_DIR = Path("data/logs")
 
 from catalog.metadata import buscar_capa, buscar_metadados, limpar_cache_capa, verificar_capa, worker
 from catalog.metadata.api import _get_cache
@@ -39,6 +43,26 @@ from catalog.storage import (
     carregar_todos_registros,
     reescrever_registros,
 )
+
+
+def _configurar_logging() -> None:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    raiz = logging.getLogger("catalog")
+    raiz.setLevel(logging.DEBUG)
+
+    sh = logging.StreamHandler()
+    sh.setLevel(logging.WARNING)
+    sh.setFormatter(logging.Formatter("[%(levelname)s] %(message)s"))
+
+    fh = logging.FileHandler(LOG_DIR / f"{date.today()}.log", encoding="utf-8")
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(logging.Formatter(
+        "[%(asctime)s] [%(levelname)-7s] %(name)s — %(message)s",
+        datefmt="%H:%M:%S",
+    ))
+
+    raiz.addHandler(sh)
+    raiz.addHandler(fh)
 
 
 def _make_on_result(fila: "queue.Queue"):
@@ -140,6 +164,7 @@ def _atualizar_capas(fix: bool = False) -> None:
 
 
 def main() -> None:
+    _configurar_logging()
     print("📚  Cadastro de biblioteca — modo assíncrono")
     print("    Escaneie sem parar. Os metadados vêm em background.")
     print("    Comandos: 'sair', 'fila', 'reprocessar', Ctrl+C\n")
