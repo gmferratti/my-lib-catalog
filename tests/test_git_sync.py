@@ -129,3 +129,22 @@ class TestFinalizarSessao:
                           side_effect=RuntimeError("gh CLI não encontrado")):
             with pytest.raises(RuntimeError, match="gh CLI"):
                 git_sync.finalizar_sessao()
+
+
+import logging
+
+
+class TestLogging:
+    def test_commit_loga_info_mensagem(self, caplog):
+        with patch.object(git_sync, "_git"), \
+             patch.object(git_sync, "_tem_mudancas_staged", return_value=True), \
+             caplog.at_level(logging.INFO, logger="catalog.storage.git_sync"):
+            git_sync.commit_se_houver_mudancas("edit: Livro Teste")
+        assert any("commit: edit: Livro Teste" in r.message for r in caplog.records)
+
+    def test_sem_mudancas_loga_debug(self, caplog):
+        with patch.object(git_sync, "_git"), \
+             patch.object(git_sync, "_tem_mudancas_staged", return_value=False), \
+             caplog.at_level(logging.DEBUG, logger="catalog.storage.git_sync"):
+            git_sync.commit_se_houver_mudancas("edit: Livro Teste")
+        assert any("nenhuma mudança" in r.message for r in caplog.records)

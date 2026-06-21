@@ -11,6 +11,7 @@ Variáveis de ambiente:
   GITHUB_BRANCH — branch base (padrão: "main")
 """
 import base64
+import logging
 import os
 from datetime import date
 from pathlib import Path
@@ -18,6 +19,7 @@ from pathlib import Path
 import requests
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+logger = logging.getLogger(__name__)
 _sessao_branch: str | None = None
 
 
@@ -93,6 +95,7 @@ def garantir_branch_sessao() -> str:
 
     if _get_branch_sha(nome):
         _sessao_branch = nome
+        logger.info("branch de sessão: %s", nome)
         return nome
 
     # Verifica acesso de escrita antes de tentar criar o branch.
@@ -120,6 +123,7 @@ def garantir_branch_sessao() -> str:
         )
 
     _sessao_branch = nome
+    logger.info("branch de sessão: %s", nome)
     return nome
 
 
@@ -196,7 +200,11 @@ def commit_arquivos(paths: list, mensagem: str) -> bool:
         json={"sha": rc.json()["sha"]},
         timeout=10,
     )
-    return rr.status_code == 200
+    if rr.status_code == 200:
+        logger.info("commit: %s", mensagem)
+        return True
+    logger.warning("falha ao atualizar ref do branch: HTTP %s", rr.status_code)
+    return False
 
 
 def contar_commits_sessao() -> int:
@@ -233,7 +241,9 @@ def finalizar_sessao() -> str:
         timeout=10,
     )
     if existing.status_code == 200 and existing.json():
-        return existing.json()[0]["html_url"]
+        url = existing.json()[0]["html_url"]
+        logger.info("PR aberta: %s", url)
+        return url
 
     r = requests.post(
         f"https://api.github.com/repos/{_repo()}/pulls",
@@ -242,7 +252,10 @@ def finalizar_sessao() -> str:
         timeout=15,
     )
     if r.status_code == 201:
-        return r.json()["html_url"]
+        url = r.json()["html_url"]
+        logger.info("PR aberta: %s", url)
+        return url
+    logger.error("falha ao criar PR: HTTP %s — %s", r.status_code, r.json().get("message", ""))
     raise RuntimeError(
         f"Erro ao criar PR: HTTP {r.status_code} — {r.json().get('message', '')}"
     )

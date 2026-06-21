@@ -1,8 +1,10 @@
+import logging
 import subprocess
 from datetime import date
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+logger = logging.getLogger(__name__)
 
 
 def _git(*args: str) -> None:
@@ -69,6 +71,7 @@ def garantir_branch_sessao() -> str:
     # git CLI local
     branch = branch_atual()
     if branch.startswith("data/"):
+        logger.info("branch de sessão: %s", branch)
         return branch
     nome = f"data/{date.today().isoformat()}"
     try:
@@ -78,6 +81,7 @@ def garantir_branch_sessao() -> str:
             _git("checkout", nome)
         except (subprocess.CalledProcessError, FileNotFoundError) as e:
             raise RuntimeError(f"Não foi possível criar/acessar o branch {nome}: {e}") from e
+    logger.info("branch de sessão: %s", nome)
     return nome
 
 
@@ -91,10 +95,13 @@ def commit_se_houver_mudancas(mensagem: str, arquivos=None) -> bool:
     try:
         _git("add", "data/")
         if not _tem_mudancas_staged():
+            logger.debug("nenhuma mudança para commitar")
             return False
         _git("commit", "-m", mensagem)
+        logger.info("commit: %s", mensagem)
         return True
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        logger.error("falha no sync: %s", e)
         return False
 
 
@@ -126,10 +133,12 @@ def finalizar_sessao() -> str:
         _git("push", "-u", "origin", branch)
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         raise RuntimeError(f"Erro ao finalizar sessão via git CLI: {e}") from e
-    return _gh(
+    url = _gh(
         "pr", "create",
         "--title", mensagem,
         "--body", f"Sessão de {hoje}: {n} alteraç{sufixo} nos dados da biblioteca.",
         "--head", branch,
         "--base", "main",
     )
+    logger.info("PR aberta: %s", url)
+    return url
