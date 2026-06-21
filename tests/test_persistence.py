@@ -1,5 +1,6 @@
 import csv
 import json
+import logging
 from unittest.mock import patch
 
 import pytest
@@ -128,3 +129,19 @@ def test_salvar_etiquetas(sample_record):
         rows = list(csv.DictReader(f))
     assert "etiquetas" in rows[0], "coluna etiquetas ausente no CSV"
     assert rows[0]["etiquetas"] == "lazer, doutorado"
+
+
+def test_salvar_loga_debug(sample_record, tmp_data_dir, caplog):
+    with caplog.at_level(logging.DEBUG, logger="catalog.storage.persistence"):
+        salvar(sample_record)
+    mensagens = [r.message for r in caplog.records]
+    assert any("salvando" in m for m in mensagens)
+    assert any(sample_record["isbn"] in m for m in mensagens)
+
+
+def test_reescrever_registros_loga_debug(sample_record, tmp_data_dir, caplog):
+    salvar(sample_record)
+    registros = carregar_todos_registros()
+    with caplog.at_level(logging.DEBUG, logger="catalog.storage.persistence"):
+        reescrever_registros(registros)
+    assert any("reescrevendo" in r.message for r in caplog.records)

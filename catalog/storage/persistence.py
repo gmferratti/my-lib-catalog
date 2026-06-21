@@ -1,10 +1,13 @@
 import csv
 import json
+import logging
 import threading
 from pathlib import Path
 
 from ..config import CAPAS_MANUAIS_FILE, CSV_FILE, CSV_HEADERS, JSON_FILE, PENDING_FILE
 from . import git_sync
+
+logger = logging.getLogger(__name__)
 
 _io_lock = threading.Lock()
 
@@ -49,11 +52,13 @@ def salvar(registro: dict) -> None:
     from ..series import compor_titulo, detectar_serie  # import local evita ciclo
 
     titulo = registro.get("titulo", "")
+    isbn = registro.get("isbn", "")
     if titulo:
         detectado = detectar_serie(titulo)
         if detectado:
             registro = {**registro, "titulo": compor_titulo(**detectado)}
 
+    logger.debug("salvando %s (%s)", isbn, titulo or "sem título")
     with _io_lock:
         novo = not Path(CSV_FILE).exists()
         with open(CSV_FILE, "a", newline="", encoding="utf-8") as f:
@@ -88,6 +93,7 @@ def carregar_todos_registros() -> list[dict]:
 
 
 def reescrever_registros(registros: list[dict]) -> None:
+    logger.debug("reescrevendo %d registros", len(registros))
     with _io_lock:
         with open(JSON_FILE, "w", encoding="utf-8") as f:
             for r in registros:
