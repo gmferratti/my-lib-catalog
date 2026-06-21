@@ -31,7 +31,7 @@ from pathlib import Path
 # Make src/ findable when running as `python scripts/main.py`
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-LOG_DIR = Path("data/logs")
+LOG_DIR = Path(__file__).resolve().parent.parent / "data" / "logs"
 
 from catalog.metadata import buscar_capa, buscar_metadados, limpar_cache_capa, verificar_capa, worker
 from catalog.metadata.api import _get_cache
@@ -48,6 +48,8 @@ from catalog.storage import (
 def _configurar_logging() -> None:
     LOG_DIR.mkdir(parents=True, exist_ok=True)
     raiz = logging.getLogger("catalog")
+    if raiz.handlers:
+        return
     raiz.setLevel(logging.DEBUG)
 
     sh = logging.StreamHandler()
