@@ -1,0 +1,14 @@
+{
+  "itens": [
+    {
+      "isbn": "9786555980950",
+      "status": "na_fila",
+      "ordem": 1,
+      "progresso_paginas": 0,
+      "data_adicao": "2026-06-21T17:07:08",
+      "data_inicio": null,
+      "data_conclusao": null,
+      "data_abandono": null
+    }
+  ]
+}
