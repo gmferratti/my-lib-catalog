@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 import time
 from datetime import datetime
@@ -11,6 +12,8 @@ from ..config import (
     GOOGLE_BOOKS_API_KEY, GOOGLE_CUSTOM_SEARCH_KEY, GOOGLE_CUSTOM_SEARCH_CX,
     ISBNDB_API_KEY,
 )
+
+logger = logging.getLogger(__name__)
 
 # Fontes disponíveis: (id, rótulo, descrição)
 FONTES_METADADOS: list[tuple[str, str, str]] = [
@@ -46,10 +49,12 @@ def _get_json(
     """GET com retry em timeouts e 429. Honra Retry-After quando presente."""
     espera = 2
     for tentativa in range(1, tentativas + 1):
+        logger.debug("GET %s (tentativa %d/%d)", url, tentativa, tentativas)
         try:
             r = requests.get(url, timeout=timeout, headers=headers or {})
             if r.status_code == 429:
                 pausa = int(r.headers.get("Retry-After", espera))
+                logger.warning("Rate limit 429 em %s — aguardando %ds", url, pausa)
                 time.sleep(pausa)
                 espera = min(espera * 2, 30)
                 continue
@@ -57,6 +62,7 @@ def _get_json(
             return r.json()
         except (requests.Timeout, requests.ConnectionError):
             if tentativa == tentativas:
+                logger.error("Falha após %d tentativas: %s", tentativas, url)
                 raise
             time.sleep(espera)
             espera = min(espera * 2, 30)
@@ -539,25 +545,32 @@ def buscar_metadados(isbn: str, apis_metadados: list[str] | None = None) -> dict
     e_brasileiro = isbn.startswith("97885") or isbn.startswith("97865")
     ordem_br  = ["brasilapi", "openlibrary", "googlebooks", "isbndb", "openlibrary_edicao"]
     ordem_int = ["openlibrary", "googlebooks", "brasilapi", "isbndb", "openlibrary_edicao"]
-    fontes = [_MAP[k] for k in (ordem_br if e_brasileiro else ordem_int)
-              if k in habilitadas and k in _MAP]
+    ordem = ordem_br if e_brasileiro else ordem_int
+    fontes = [(k, _MAP[k]) for k in ordem if k in habilitadas and k in _MAP]
 
     dados = None
-    for buscar in fontes:
+    for nome_fonte, buscar in fontes:
+        logger.debug("[%s] tentando %s", isbn, nome_fonte)
         resultado = buscar(isbn)
         if not resultado or not resultado.get("titulo"):
+            logger.debug("[%s] %s → não encontrado", isbn, nome_fonte)
             continue
         if dados is None:
+            logger.debug("[%s] %s → encontrado (título: %s)", isbn, nome_fonte, resultado.get("titulo", ""))
             dados = resultado
             if (dados.get("ano") or "").strip():
-                break  # fonte principal tem título + ano — pronto
+                break
         elif not (dados.get("ano") or "").strip() and (resultado.get("ano") or "").strip():
+            logger.debug("[%s] ano suplementado via %s", isbn, nome_fonte)
             dados["ano"] = resultado["ano"].strip()
-            break  # suplementou o ano
+            break
 
     if not dados:
+        logger.warning("[%s] nenhuma fonte retornou metadados", isbn)
         dados = {k: "" for k in CSV_HEADERS}
         dados["fonte"] = "nao_encontrado"
+    else:
+        logger.info("[%s] metadados obtidos via %s", isbn, dados["fonte"])
     dados["isbn"] = isbn
     dados["data_cadastro"] = datetime.now().isoformat(timespec="seconds")
     return dados

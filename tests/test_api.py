@@ -787,3 +787,41 @@ def test_cascata_preserva_dados_da_fonte_principal_ao_suplementar_ano(mocker):
     assert result["autores"] == "Robert C. Martin"
     assert result["editora"] == "Alta Books"
     assert result["ano"] == "2011"
+
+
+import logging
+
+
+def test_buscar_metadados_loga_info_fonte_encontrada(mocker, caplog):
+    payload = {
+        "titulo": "Machine Learning Design Patterns",
+        "autores": "Sara Robinson",
+        "editora": "O'Reilly",
+        "ano": "2020",
+        "paginas": 400,
+        "idioma": "en",
+        "assuntos": "Computers",
+        "capa_url": "",
+        "fonte": "openlibrary",
+    }
+    mocker.patch("catalog.metadata.api.buscar_brasil_api", return_value=None)
+    mocker.patch("catalog.metadata.api.buscar_open_library", return_value=payload)
+    mocker.patch("catalog.metadata.api.buscar_google_books", return_value=None)
+    mocker.patch("catalog.metadata.api.buscar_isbndb", return_value=None)
+    mocker.patch("catalog.metadata.api.buscar_open_library_edicao", return_value=None)
+
+    with caplog.at_level(logging.INFO, logger="catalog.metadata.api"):
+        buscar_metadados(ISBN)
+
+    assert any("metadados obtidos via openlibrary" in r.message for r in caplog.records)
+
+
+def test_buscar_metadados_loga_warning_nao_encontrado(mocker, caplog):
+    for fn in ["buscar_brasil_api", "buscar_open_library", "buscar_google_books",
+               "buscar_isbndb", "buscar_open_library_edicao"]:
+        mocker.patch(f"catalog.metadata.api.{fn}", return_value=None)
+
+    with caplog.at_level(logging.WARNING, logger="catalog.metadata.api"):
+        buscar_metadados(ISBN)
+
+    assert any("nenhuma fonte retornou metadados" in r.message for r in caplog.records)
