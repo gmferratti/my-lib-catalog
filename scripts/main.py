@@ -303,6 +303,7 @@ def _processar_lista(isbns_raw: list[str]) -> None:
 
 
 if __name__ == "__main__":
+    _configurar_logging()
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("--reprocessar", action="store_true")
     parser.add_argument("--capas", action="store_true")
