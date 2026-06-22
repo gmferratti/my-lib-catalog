@@ -45,6 +45,7 @@ def _get_json(
     tentativas: int = 3,
     timeout: int = 20,
     headers: dict | None = None,
+    log_level_on_fail: int = logging.ERROR,
 ) -> dict | None:
     """GET com retry em timeouts e 429. Honra Retry-After quando presente."""
     espera = 2
@@ -62,7 +63,8 @@ def _get_json(
             return r.json()
         except (requests.Timeout, requests.ConnectionError):
             if tentativa == tentativas:
-                logger.error("Falha após %d tentativas: %s", tentativas, url)
+                palavra = "tentativa" if tentativas == 1 else "tentativas"
+                logger.log(log_level_on_fail, "Falha após %d %s: %s", tentativas, palavra, url)
                 raise
             time.sleep(espera)
             espera = min(espera * 2, 30)
@@ -275,7 +277,7 @@ def _capa_ol_titulo_autor(titulo: str, autores: str) -> str:
     try:
         data = _get_json(
             f"https://openlibrary.org/search.json?{params}&fields=cover_i&limit=5",
-            tentativas=1, timeout=5,
+            tentativas=1, timeout=5, log_level_on_fail=logging.DEBUG,
         )
         for doc in (data or {}).get("docs", []):
             cover_i = doc.get("cover_i")
@@ -309,7 +311,7 @@ def _capa_duckduckgo(isbn: str, titulo: str = "", autores: str = "") -> str:
         data = _get_json(
             f"https://duckduckgo.com/i.js?q={requests.utils.quote(query)}&o=json&vqd={vqd}",
             tentativas=1, timeout=10,
-            headers=headers,
+            headers=headers, log_level_on_fail=logging.DEBUG,
         )
         for item in (data or {}).get("results", []):
             img_url = item.get("image", "")
@@ -338,7 +340,7 @@ def _capa_google_cse(isbn: str, titulo: str = "", autores: str = "") -> str:
             f"https://customsearch.googleapis.com/customsearch/v1"
             f"?q={requests.utils.quote(query)}&searchType=image&num=3"
             f"&key={GOOGLE_CUSTOM_SEARCH_KEY}&cx={GOOGLE_CUSTOM_SEARCH_CX}",
-            tentativas=1, timeout=10,
+            tentativas=1, timeout=10, log_level_on_fail=logging.DEBUG,
         )
         for item in (data or {}).get("items", []):
             img_url = item.get("link", "")
@@ -380,7 +382,7 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> tuple[s
         try:
             data = _get_json(
                 f"https://openlibrary.org/search.json?isbn={isbn}&fields=cover_i",
-                tentativas=1, timeout=5,
+                tentativas=1, timeout=5, log_level_on_fail=logging.DEBUG,
             )
             docs = (data or {}).get("docs", [])
             cover_i = docs[0].get("cover_i") if docs else None
@@ -401,7 +403,7 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> tuple[s
             url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
             if GOOGLE_BOOKS_API_KEY:
                 url += f"&key={GOOGLE_BOOKS_API_KEY}"
-            data = _get_json(url, tentativas=1, timeout=5)
+            data = _get_json(url, tentativas=1, timeout=5, log_level_on_fail=logging.DEBUG)
             if data and data.get("totalItems"):
                 item = data["items"][0]
                 if item.get("volumeInfo", {}).get("imageLinks"):
@@ -427,7 +429,7 @@ def _buscar_capa_rede(isbn: str, titulo: str = "", autores: str = "") -> tuple[s
             url = f"https://www.googleapis.com/books/v1/volumes?q={requests.utils.quote(query)}"
             if GOOGLE_BOOKS_API_KEY:
                 url += f"&key={GOOGLE_BOOKS_API_KEY}"
-            data = _get_json(url, tentativas=1, timeout=5)
+            data = _get_json(url, tentativas=1, timeout=5, log_level_on_fail=logging.DEBUG)
             if data and data.get("totalItems"):
                 for item in data.get("items", []):
                     if not item.get("volumeInfo", {}).get("imageLinks"):
